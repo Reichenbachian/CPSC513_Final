@@ -1,2 +1,9 @@
 ## Example virus program
 example_folder/
+
+## Don't upload the databases as these could potentially be large files
+db/
+
+
+## Ignore python cache files
+__pycache__
