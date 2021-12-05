@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>800</width>
+    <height>600</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>800</width>
+    <height>600</height>
+   </size>
+  </property>
+  <property name="cursor">
+   <cursorShape>ArrowCursor</cursorShape>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="layoutDirection">
+   <enum>Qt::LeftToRight</enum>
+  </property>
+  <property name="toolButtonStyle">
+   <enum>Qt::ToolButtonTextUnderIcon</enum>
+  </property>
+  <property name="documentMode">
+   <bool>false</bool>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>false</bool>
+  </property>
+  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>LeftToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionScan"/>
+   <addaction name="separator"/>
+   <addaction name="actionSchedule_Scan"/>
+   <addaction name="separator"/>
+   <addaction name="actionView_Vault"/>
+   <addaction name="separator"/>
+   <addaction name="actionConfig"/>
+  </widget>
+  <action name="actionScan">
+   <property name="icon">
+    <iconset>
+     <normaloff>resources/search.svg</normaloff>resources/search.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Scan</string>
+   </property>
+   <property name="toolTip">
+    <string>Scan Files Now</string>
+   </property>
+  </action>
+  <action name="actionSchedule_Scan">
+   <property name="icon">
+    <iconset>
+     <normaloff>resources/schedule.png</normaloff>resources/schedule.png</iconset>
+   </property>
+   <property name="text">
+    <string>Schedule Scan</string>
+   </property>
+   <property name="toolTip">
+    <string>Schedule Scan</string>
+   </property>
+  </action>
+  <action name="actionConfig">
+   <property name="icon">
+    <iconset>
+     <normaloff>resources/config.svg</normaloff>resources/config.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Config</string>
+   </property>
+   <property name="toolTip">
+    <string>Configurations</string>
+   </property>
+  </action>
+  <action name="actionView_Vault">
+   <property name="icon">
+    <iconset>
+     <normaloff>resources/lock.png</normaloff>resources/lock.png</iconset>
+   </property>
+   <property name="text">
+    <string>View Vault</string>
+   </property>
+   <property name="toolTip">
+    <string>View Vault</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
