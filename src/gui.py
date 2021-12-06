@@ -15,6 +15,18 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class GUI(object):
     def __init__(self, main_window):
         self.mainWindow = main_window
+
+        self.centralWidget = None
+        self.scanFrame = None
+        self.schedScanFrame = None
+        self.viewVaultFrame = None
+        self.configFrame = None
+        self.actionScan = None
+        self.actionSchedule_Scan = None
+        self.actionConfig = None
+        self.actionView_Vault = None
+        self.progressBar = None
+
         self._setupUi()
 
     def _setupUi(self):
@@ -41,7 +53,7 @@ class GUI(object):
         self._setupSchedScanFrame()
         self._setupViewVaultFrame()
         self._setupConfigFrame()
-        self._setupActions()
+        self._setupMenuActions()
         self._setupToolbar()
         
 
@@ -50,31 +62,29 @@ class GUI(object):
         self.schedScanFrame.hide()
         self.scanFrame.raise_()
 
-        self.mainWindow.setCentralWidget(self.centralwidget)
-
     def _setupToolbar(self):
-        self.toolBar = QtWidgets.QToolBar(self.mainWindow)
+        toolBar = QtWidgets.QToolBar(self.mainWindow)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.toolBar.sizePolicy().hasHeightForWidth())
-        self.toolBar.setSizePolicy(sizePolicy)
-        self.toolBar.setMaximumSize(QtCore.QSize(100, 600))
-        self.toolBar.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.toolBar.setMovable(False)
-        self.toolBar.setObjectName("toolBar")
-        self.toolBar.setWindowTitle("toolBar")
-        self.mainWindow.addToolBar(QtCore.Qt.LeftToolBarArea, self.toolBar)
+        sizePolicy.setHeightForWidth(toolBar.sizePolicy().hasHeightForWidth())
+        toolBar.setSizePolicy(sizePolicy)
+        toolBar.setMaximumSize(QtCore.QSize(100, 600))
+        toolBar.setLayoutDirection(QtCore.Qt.LeftToRight)
+        toolBar.setMovable(False)
+        toolBar.setObjectName("toolBar")
+        toolBar.setWindowTitle("toolBar")
+        self.mainWindow.addToolBar(QtCore.Qt.LeftToolBarArea, toolBar)
 
-        self.toolBar.addAction(self.actionScan)
-        self.toolBar.addSeparator()
-        self.toolBar.addAction(self.actionSchedule_Scan)
-        self.toolBar.addSeparator()
-        self.toolBar.addAction(self.actionView_Vault)
-        self.toolBar.addSeparator()
-        self.toolBar.addAction(self.actionConfig)    
+        toolBar.addAction(self.actionScan)
+        toolBar.addSeparator()
+        toolBar.addAction(self.actionSchedule_Scan)
+        toolBar.addSeparator()
+        toolBar.addAction(self.actionView_Vault)
+        toolBar.addSeparator()
+        toolBar.addAction(self.actionConfig)    
         
-    def _setupActions(self):
+    def _setupMenuActions(self):
 
         self.actionScan = QtWidgets.QAction(self.mainWindow)
         icon = QtGui.QIcon()
@@ -130,6 +140,7 @@ class GUI(object):
 
         self.centralwidget = QtWidgets.QWidget(self.mainWindow)
         self.centralwidget.setObjectName("centralwidget")
+        self.mainWindow.setCentralWidget(self.centralwidget)
     
     def _setupScanFrame(self):
         self.scanFrame = QtWidgets.QFrame(self.centralwidget)
@@ -138,30 +149,41 @@ class GUI(object):
         self.scanFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.scanFrame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.scanFrame.setObjectName("scanFrame")
-        self.scanLabel = QtWidgets.QLabel(self.scanFrame)
-        self.scanLabel.setEnabled(True)
-        self.scanLabel.setGeometry(QtCore.QRect(0, 0, 750, 62))
+
+        scanLabel = QtWidgets.QLabel(self.scanFrame)
+        scanLabel.setEnabled(True)
+        scanLabel.setGeometry(QtCore.QRect(0, 0, 750, 62))
         font = QtGui.QFont()
         font.setFamily("MS Gothic")
         font.setPointSize(22)
-        self.scanLabel.setFont(font)
-        self.scanLabel.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.scanLabel.setFrameShape(QtWidgets.QFrame.Panel)
-        self.scanLabel.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.scanLabel.setLineWidth(1)
-        self.scanLabel.setMidLineWidth(10)
-        self.scanLabel.setTextFormat(QtCore.Qt.PlainText)
-        self.scanLabel.setScaledContents(False)
-        self.scanLabel.setObjectName("scanLabel")
-        self.scanLabel.setText("SCAN")
-        self.scanNowButton = QtWidgets.QPushButton(self.scanFrame)
-        self.scanNowButton.setGeometry(QtCore.QRect(230, 300, 200, 40))
-        self.scanNowButton.setObjectName("scanNowButton")
-        self.scanNowButton.setText("Scan Now")
+        scanLabel.setFont(font)
+        scanLabel.setLayoutDirection(QtCore.Qt.LeftToRight)
+        scanLabel.setFrameShape(QtWidgets.QFrame.Panel)
+        scanLabel.setFrameShadow(QtWidgets.QFrame.Sunken)
+        scanLabel.setLineWidth(1)
+        scanLabel.setMidLineWidth(10)
+        scanLabel.setTextFormat(QtCore.Qt.PlainText)
+        scanLabel.setScaledContents(False)
+        scanLabel.setObjectName("scanLabel")
+        scanLabel.setText("SCAN")
+
+        scanNowButton = QtWidgets.QPushButton(self.scanFrame)
+        scanNowButton.setGeometry(QtCore.QRect(230, 300, 200, 40))
+        scanNowButton.setObjectName("scanNowButton")
+        scanNowButton.setText("Scan Now")
+        scanNowButton.clicked.connect(lambda:self._setupScanNowDialog())
+
         self.progressBar = QtWidgets.QProgressBar(self.scanFrame)
         self.progressBar.setGeometry(QtCore.QRect(40, 220, 641, 31))
         self.progressBar.setProperty("value", 24)
         self.progressBar.setObjectName("progressBar")
+    
+    def _setupScanNowDialog(self):
+        scanNowDialog = QtWidgets.QDialog(self.mainWindow)
+        scanNowDialog.setWindowModality(QtCore.Qt.NonModal)
+        scanNowDialog.setEnabled(True)
+        scanNowDialog.resize(400, 300)
+        scanNowDialog.exec()
     
     def _setupSchedScanFrame(self):
         self.schedScanFrame = QtWidgets.QFrame(self.centralwidget)
@@ -170,22 +192,23 @@ class GUI(object):
         self.schedScanFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.schedScanFrame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.schedScanFrame.setObjectName("schedScanFrame")
-        self.schedScanLabel = QtWidgets.QLabel(self.schedScanFrame)
-        self.schedScanLabel.setEnabled(True)
-        self.schedScanLabel.setGeometry(QtCore.QRect(0, 0, 750, 62))
+
+        schedScanLabel = QtWidgets.QLabel(self.schedScanFrame)
+        schedScanLabel.setEnabled(True)
+        schedScanLabel.setGeometry(QtCore.QRect(0, 0, 750, 62))
         font = QtGui.QFont()
         font.setFamily("MS Gothic")
         font.setPointSize(22)
-        self.schedScanLabel.setFont(font)
-        self.schedScanLabel.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.schedScanLabel.setFrameShape(QtWidgets.QFrame.Panel)
-        self.schedScanLabel.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.schedScanLabel.setLineWidth(1)
-        self.schedScanLabel.setMidLineWidth(10)
-        self.schedScanLabel.setTextFormat(QtCore.Qt.PlainText)
-        self.schedScanLabel.setScaledContents(False)
-        self.schedScanLabel.setObjectName("schedScanLabel")
-        self.schedScanLabel.setText("SCHEDULE SCAN")
+        schedScanLabel.setFont(font)
+        schedScanLabel.setLayoutDirection(QtCore.Qt.LeftToRight)
+        schedScanLabel.setFrameShape(QtWidgets.QFrame.Panel)
+        schedScanLabel.setFrameShadow(QtWidgets.QFrame.Sunken)
+        schedScanLabel.setLineWidth(1)
+        schedScanLabel.setMidLineWidth(10)
+        schedScanLabel.setTextFormat(QtCore.Qt.PlainText)
+        schedScanLabel.setScaledContents(False)
+        schedScanLabel.setObjectName("schedScanLabel")
+        schedScanLabel.setText("SCHEDULE SCAN")
 
     def _setupViewVaultFrame(self):
         self.viewVaultFrame = QtWidgets.QFrame(self.centralwidget)
@@ -194,22 +217,23 @@ class GUI(object):
         self.viewVaultFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.viewVaultFrame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.viewVaultFrame.setObjectName("viewVaultFrame")
-        self.viewVaultLabel = QtWidgets.QLabel(self.viewVaultFrame)
-        self.viewVaultLabel.setEnabled(True)
-        self.viewVaultLabel.setGeometry(QtCore.QRect(0, 0, 750, 62))
+
+        viewVaultLabel = QtWidgets.QLabel(self.viewVaultFrame)
+        viewVaultLabel.setEnabled(True)
+        viewVaultLabel.setGeometry(QtCore.QRect(0, 0, 750, 62))
         font = QtGui.QFont()
         font.setFamily("MS Gothic")
         font.setPointSize(22)
-        self.viewVaultLabel.setFont(font)
-        self.viewVaultLabel.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.viewVaultLabel.setFrameShape(QtWidgets.QFrame.Panel)
-        self.viewVaultLabel.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.viewVaultLabel.setLineWidth(1)
-        self.viewVaultLabel.setMidLineWidth(10)
-        self.viewVaultLabel.setTextFormat(QtCore.Qt.PlainText)
-        self.viewVaultLabel.setScaledContents(False)
-        self.viewVaultLabel.setObjectName("viewVaultLabel")
-        self.viewVaultLabel.setText("VAULT")
+        viewVaultLabel.setFont(font)
+        viewVaultLabel.setLayoutDirection(QtCore.Qt.LeftToRight)
+        viewVaultLabel.setFrameShape(QtWidgets.QFrame.Panel)
+        viewVaultLabel.setFrameShadow(QtWidgets.QFrame.Sunken)
+        viewVaultLabel.setLineWidth(1)
+        viewVaultLabel.setMidLineWidth(10)
+        viewVaultLabel.setTextFormat(QtCore.Qt.PlainText)
+        viewVaultLabel.setScaledContents(False)
+        viewVaultLabel.setObjectName("viewVaultLabel")
+        viewVaultLabel.setText("VAULT")
     
     def _setupConfigFrame(self):
         self.configFrame = QtWidgets.QFrame(self.centralwidget)
@@ -219,20 +243,25 @@ class GUI(object):
         self.configFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.configFrame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.configFrame.setObjectName("configFrame")
-        self.configLabel = QtWidgets.QLabel(self.configFrame)
-        self.configLabel.setEnabled(True)
-        self.configLabel.setGeometry(QtCore.QRect(0, 0, 750, 62))
+
+        configLabel = QtWidgets.QLabel(self.configFrame)
+        configLabel.setEnabled(True)
+        configLabel.setGeometry(QtCore.QRect(0, 0, 750, 62))
         font = QtGui.QFont()
         font.setFamily("MS Gothic")
         font.setPointSize(22)
-        self.configLabel.setFont(font)
-        self.configLabel.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.configLabel.setFrameShape(QtWidgets.QFrame.Panel)
-        self.configLabel.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.configLabel.setLineWidth(1)
-        self.configLabel.setMidLineWidth(10)
-        self.configLabel.setTextFormat(QtCore.Qt.PlainText)
-        self.configLabel.setScaledContents(False)
-        self.configLabel.setObjectName("configLabel")
-        self.configLabel.setText("CONFIG")
-        
+        configLabel.setFont(font)
+        configLabel.setLayoutDirection(QtCore.Qt.LeftToRight)
+        configLabel.setFrameShape(QtWidgets.QFrame.Panel)
+        configLabel.setFrameShadow(QtWidgets.QFrame.Sunken)
+        configLabel.setLineWidth(1)
+        configLabel.setMidLineWidth(10)
+        configLabel.setTextFormat(QtCore.Qt.PlainText)
+        configLabel.setScaledContents(False)
+        configLabel.setObjectName("configLabel")
+        configLabel.setText("CONFIG")
+    
+
+    def updateProgressBar(self, new_val):
+        self.progressBar.setProperty("value", new_val)
+
