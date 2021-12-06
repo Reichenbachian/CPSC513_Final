@@ -3,6 +3,8 @@ import config
 import os
 from pathlib import Path
 from scanner import SignatureScanner, RegexScanner
+from PyQt5.QtWidgets import QApplication, QFrame, QMainWindow
+from gui import GUI
 
 def run_folder_scan(folder):
 	scanner = SignatureScanner(config.SIGNATURE_FILE)
@@ -19,6 +21,12 @@ def run_folder_scan(folder):
 def main(scan_folder):
 	if scan_folder is not None:
 		run_folder_scan(scan_folder)
+	else:
+		app = QApplication([])
+		window = QMainWindow()
+		GUI(window)
+		window.show()
+		app.exec()
 
 if __name__ == "__main__":
 	main()
