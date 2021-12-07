@@ -34,7 +34,7 @@ class GUISetup(object):
 
         self.frameFont = None
 
-        self.scan_file_path = None
+        self.scan_file_paths = None
 
         self._setupUi()
 
@@ -213,7 +213,7 @@ class GUISetup(object):
         selectFileDialog.setViewMode(QtWidgets.QFileDialog.Detail)
         selectFileDialog.setWindowTitle("Select directory to scan...")
         if(selectFileDialog.exec()):
-            self.scan_file_path = selectFileDialog.selectedFiles()
+            self.scan_file_paths = selectFileDialog.selectedFiles()
 
     def _setupSchedScanFrame(self):
         self.schedScanFrame = QtWidgets.QFrame(self.centralwidget)
@@ -297,8 +297,8 @@ class GUI(GUISetup):
     def updateProgressBar(self, new_val):
         self.progressBar.setProperty("value", new_val)
     
-    def getFilePath(self):
-        return self.scan_file_path
+    def getFilePaths(self):
+        return self.scan_file_paths
     
     def displayError(self, message):
         super()._displayError(message)
