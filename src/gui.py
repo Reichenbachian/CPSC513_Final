@@ -10,8 +10,6 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-
-
 class GUI(object):
     def __init__(self, main_window):
         self.mainWindow = main_window
@@ -27,9 +25,39 @@ class GUI(object):
         self.actionView_Vault = None
         self.progressBar = None
 
+        self.hodalexIcon = None
+        self.scanNowIcon = None
+        self.schedScanIcon = None
+        self.viewVaultIcon = None
+        self.configIcon = None
+        self.errorIcon = None
+
+        self.frameFont = None
+
+        self.scan_file_path = None
+
         self._setupUi()
 
     def _setupUi(self):
+        
+        self._importIcons()
+        self._setupFonts()
+        self._setupMainWindow()
+        self._setupCentralWidget()
+        self._setupScanFrame()
+        self._setupSchedScanFrame()
+        self._setupViewVaultFrame()
+        self._setupConfigFrame()
+        self._setupMenuActions()
+        self._setupToolbar()
+        
+
+        self.viewVaultFrame.hide()
+        self.configFrame.hide()
+        self.schedScanFrame.hide()
+        self.scanFrame.raise_()
+
+    def _setupMainWindow(self):
         self.mainWindow.setObjectName("MainWindow")
         self.mainWindow.setWindowModality(QtCore.Qt.NonModal)
         self.mainWindow.setEnabled(True)
@@ -47,20 +75,31 @@ class GUI(object):
         self.mainWindow.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
         self.mainWindow.setDocumentMode(False)
         self.mainWindow.setUnifiedTitleAndToolBarOnMac(False)
+        self.mainWindow.setWindowIcon(self.hodalexIcon)
 
-        self._setupCentralWidget()
-        self._setupScanFrame()
-        self._setupSchedScanFrame()
-        self._setupViewVaultFrame()
-        self._setupConfigFrame()
-        self._setupMenuActions()
-        self._setupToolbar()
+    def _importIcons(self):
+        self.hodalexIcon = QtGui.QIcon()
+        self.hodalexIcon.addPixmap(QtGui.QPixmap(".\\ui\\resources/antivirus.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         
+        self.scanNowIcon = QtGui.QIcon()
+        self.scanNowIcon.addPixmap(QtGui.QPixmap(".\\ui\\resources/search.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        
+        self.schedScanIcon = QtGui.QIcon()
+        self.schedScanIcon.addPixmap(QtGui.QPixmap(".\\ui\\resources/schedule.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
-        self.viewVaultFrame.hide()
-        self.configFrame.hide()
-        self.schedScanFrame.hide()
-        self.scanFrame.raise_()
+        self.viewVaultIcon = QtGui.QIcon()
+        self.viewVaultIcon.addPixmap(QtGui.QPixmap(".\\ui\\resources/config.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+
+        self.configIcon = QtGui.QIcon()
+        self.configIcon.addPixmap(QtGui.QPixmap(".\\ui\\resources/lock.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+
+        self.errorIcon = QtGui.QIcon()
+        self.errorIcon.addPixmap(QtGui.QPixmap(".\\ui\\resources/error.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        
+    def _setupFonts(self):
+        self.frameFont = QtGui.QFont()
+        self.frameFont.setFamily("Avantgarde")
+        self.frameFont.setPointSize(22)
 
     def _setupToolbar(self):
         toolBar = QtWidgets.QToolBar(self.mainWindow)
@@ -87,33 +126,25 @@ class GUI(object):
     def _setupMenuActions(self):
 
         self.actionScan = QtWidgets.QAction(self.mainWindow)
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(".\\ui\\resources/search.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.actionScan.setIcon(icon)
+        self.actionScan.setIcon(self.scanNowIcon)
         self.actionScan.setObjectName("actionScan")
         self.actionScan.setText("Scan")
         self.actionScan.setToolTip("Scan Files Now")
 
         self.actionSchedule_Scan = QtWidgets.QAction(self.mainWindow)
-        icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(".\\ui\\resources/schedule.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.actionSchedule_Scan.setIcon(icon1)
+        self.actionSchedule_Scan.setIcon(self.schedScanIcon)
         self.actionSchedule_Scan.setObjectName("actionSchedule_Scan")
         self.actionSchedule_Scan.setText("Schedule Scan")
         self.actionSchedule_Scan.setToolTip("Schedule Scan")
 
         self.actionConfig = QtWidgets.QAction(self.mainWindow)
-        icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(".\\ui\\resources/config.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.actionConfig.setIcon(icon2)
+        self.actionConfig.setIcon(self.viewVaultIcon)
         self.actionConfig.setObjectName("actionConfig")
         self.actionConfig.setText("Config")
         self.actionConfig.setToolTip("Configurations")
 
         self.actionView_Vault = QtWidgets.QAction(self.mainWindow)
-        icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(".\\ui\\resources/lock.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.actionView_Vault.setIcon(icon3)
+        self.actionView_Vault.setIcon(self.configIcon)
         self.actionView_Vault.setObjectName("actionView_Vault")
         self.actionView_Vault.setText("View Vault")
         self.actionView_Vault.setToolTip("View Vault")
@@ -153,10 +184,8 @@ class GUI(object):
         scanLabel = QtWidgets.QLabel(self.scanFrame)
         scanLabel.setEnabled(True)
         scanLabel.setGeometry(QtCore.QRect(0, 0, 750, 62))
-        font = QtGui.QFont()
-        font.setFamily("MS Gothic")
-        font.setPointSize(22)
-        scanLabel.setFont(font)
+        
+        scanLabel.setFont(self.frameFont)
         scanLabel.setLayoutDirection(QtCore.Qt.LeftToRight)
         scanLabel.setFrameShape(QtWidgets.QFrame.Panel)
         scanLabel.setFrameShadow(QtWidgets.QFrame.Sunken)
@@ -175,16 +204,31 @@ class GUI(object):
 
         self.progressBar = QtWidgets.QProgressBar(self.scanFrame)
         self.progressBar.setGeometry(QtCore.QRect(40, 220, 641, 31))
-        self.progressBar.setProperty("value", 24)
+        self.progressBar.setProperty("value", 0)
         self.progressBar.setObjectName("progressBar")
     
     def _setupScanNowDialog(self):
         scanNowDialog = QtWidgets.QDialog(self.mainWindow)
         scanNowDialog.setWindowModality(QtCore.Qt.NonModal)
         scanNowDialog.setEnabled(True)
-        scanNowDialog.resize(400, 300)
+        scanNowDialog.resize(400, 100)
+        scanNowDialog.setWindowTitle("Enter File Path")
+        scanNowDialog.setWindowIcon(self.scanNowIcon)
+
+        filePathInput = QtWidgets.QLineEdit(scanNowDialog)
+        filePathInput.setGeometry(QtCore.QRect(10,25,300,30))
+
+        scanButton = QtWidgets.QPushButton(scanNowDialog)
+        scanButton.setGeometry(QtCore.QRect(320, 25, 70, 30))
+        scanButton.setText("Scan")
+        scanButton.clicked.connect(lambda:self._extract_file_path(scanNowDialog, filePathInput))
         scanNowDialog.exec()
-    
+        self.displayError(self.scan_file_path)
+
+    def _extract_file_path(self, dialog, inputLine):
+        self.scan_file_path = inputLine.text()
+        dialog.done(QtWidgets.QDialog.Accepted)
+
     def _setupSchedScanFrame(self):
         self.schedScanFrame = QtWidgets.QFrame(self.centralwidget)
         self.schedScanFrame.setGeometry(QtCore.QRect(0, 0, 700, 600))
@@ -196,10 +240,7 @@ class GUI(object):
         schedScanLabel = QtWidgets.QLabel(self.schedScanFrame)
         schedScanLabel.setEnabled(True)
         schedScanLabel.setGeometry(QtCore.QRect(0, 0, 750, 62))
-        font = QtGui.QFont()
-        font.setFamily("MS Gothic")
-        font.setPointSize(22)
-        schedScanLabel.setFont(font)
+        schedScanLabel.setFont(self.frameFont)
         schedScanLabel.setLayoutDirection(QtCore.Qt.LeftToRight)
         schedScanLabel.setFrameShape(QtWidgets.QFrame.Panel)
         schedScanLabel.setFrameShadow(QtWidgets.QFrame.Sunken)
@@ -221,10 +262,7 @@ class GUI(object):
         viewVaultLabel = QtWidgets.QLabel(self.viewVaultFrame)
         viewVaultLabel.setEnabled(True)
         viewVaultLabel.setGeometry(QtCore.QRect(0, 0, 750, 62))
-        font = QtGui.QFont()
-        font.setFamily("MS Gothic")
-        font.setPointSize(22)
-        viewVaultLabel.setFont(font)
+        viewVaultLabel.setFont(self.frameFont)
         viewVaultLabel.setLayoutDirection(QtCore.Qt.LeftToRight)
         viewVaultLabel.setFrameShape(QtWidgets.QFrame.Panel)
         viewVaultLabel.setFrameShadow(QtWidgets.QFrame.Sunken)
@@ -247,10 +285,7 @@ class GUI(object):
         configLabel = QtWidgets.QLabel(self.configFrame)
         configLabel.setEnabled(True)
         configLabel.setGeometry(QtCore.QRect(0, 0, 750, 62))
-        font = QtGui.QFont()
-        font.setFamily("MS Gothic")
-        font.setPointSize(22)
-        configLabel.setFont(font)
+        configLabel.setFont(self.frameFont)
         configLabel.setLayoutDirection(QtCore.Qt.LeftToRight)
         configLabel.setFrameShape(QtWidgets.QFrame.Panel)
         configLabel.setFrameShadow(QtWidgets.QFrame.Sunken)
@@ -264,4 +299,14 @@ class GUI(object):
 
     def updateProgressBar(self, new_val):
         self.progressBar.setProperty("value", new_val)
+    
+    def getFilePath(self):
+        return self.scan_file_path
+    
+    def displayError(self, message):
+        error_dialog = QtWidgets.QErrorMessage()
+        error_dialog.showMessage(message)
+        error_dialog.setWindowIcon(self.errorIcon)
+        error_dialog.setWindowTitle("Error")
+        error_dialog.exec()
 
