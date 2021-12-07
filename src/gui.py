@@ -10,7 +10,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-class GUI(object):
+class GUISetup(object):
     def __init__(self, main_window):
         self.mainWindow = main_window
 
@@ -208,25 +208,12 @@ class GUI(object):
         self.progressBar.setObjectName("progressBar")
     
     def _setupScanNowDialog(self):
-        scanNowDialog = QtWidgets.QDialog(self.mainWindow)
-        scanNowDialog.setWindowModality(QtCore.Qt.NonModal)
-        scanNowDialog.setEnabled(True)
-        scanNowDialog.resize(400, 100)
-        scanNowDialog.setWindowTitle("Enter File Path")
-        scanNowDialog.setWindowIcon(self.scanNowIcon)
-
-        filePathInput = QtWidgets.QLineEdit(scanNowDialog)
-        filePathInput.setGeometry(QtCore.QRect(10,25,300,30))
-
-        scanButton = QtWidgets.QPushButton(scanNowDialog)
-        scanButton.setGeometry(QtCore.QRect(320, 25, 70, 30))
-        scanButton.setText("Scan")
-        scanButton.clicked.connect(lambda:self._extract_file_path(scanNowDialog, filePathInput))
-        scanNowDialog.exec()
-
-    def _extract_file_path(self, dialog, inputLine):
-        self.scan_file_path = inputLine.text()
-        dialog.done(QtWidgets.QDialog.Accepted)
+        selectFileDialog = QtWidgets.QFileDialog(self.mainWindow)
+        selectFileDialog.setFileMode(QtWidgets.QFileDialog.Directory)
+        selectFileDialog.setViewMode(QtWidgets.QFileDialog.Detail)
+        selectFileDialog.setWindowTitle("Select directory to scan...")
+        if(selectFileDialog.exec()):
+            self.scan_file_path = selectFileDialog.selectedFiles()
 
     def _setupSchedScanFrame(self):
         self.schedScanFrame = QtWidgets.QFrame(self.centralwidget)
@@ -294,8 +281,19 @@ class GUI(object):
         configLabel.setScaledContents(False)
         configLabel.setObjectName("configLabel")
         configLabel.setText("CONFIG")
-    
 
+    def _displayError(self, message):
+        error_dialog = QtWidgets.QErrorMessage()
+        error_dialog.showMessage(str(message))
+        error_dialog.setWindowIcon(self.errorIcon)
+        error_dialog.setWindowTitle("Error")
+        error_dialog.exec()
+
+class GUI(GUISetup):
+
+    def __init__(self, main_window):
+        super().__init__(main_window)
+        
     def updateProgressBar(self, new_val):
         self.progressBar.setProperty("value", new_val)
     
@@ -303,9 +301,6 @@ class GUI(object):
         return self.scan_file_path
     
     def displayError(self, message):
-        error_dialog = QtWidgets.QErrorMessage()
-        error_dialog.showMessage(message)
-        error_dialog.setWindowIcon(self.errorIcon)
-        error_dialog.setWindowTitle("Error")
-        error_dialog.exec()
+        super()._displayError(message)
+    
 
