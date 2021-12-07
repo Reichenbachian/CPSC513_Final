@@ -223,7 +223,6 @@ class GUI(object):
         scanButton.setText("Scan")
         scanButton.clicked.connect(lambda:self._extract_file_path(scanNowDialog, filePathInput))
         scanNowDialog.exec()
-        self.displayError(self.scan_file_path)
 
     def _extract_file_path(self, dialog, inputLine):
         self.scan_file_path = inputLine.text()
