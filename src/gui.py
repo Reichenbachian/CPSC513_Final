@@ -9,6 +9,64 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from datetime import datetime
+import bisect
+
+class DateTime(object):
+    def __init__(self, year, month, day, hour, minute, ampm):
+        self.year = int(year)
+        self.month = int(month)
+        self.day = int(day)
+        hour = int(hour)
+
+        if ((ampm == 'AM' and hour != 12) or (ampm == 'PM' and hour == 12)):
+            self.hour = hour
+        elif (ampm == "AM" and hour == 12):
+            self.hour = 0
+        else:
+            self.hour = hour + 12
+
+        self.minute = int(minute)
+    
+    def __eq__(self, other):
+        if (self.year == other.year and self.month == other.month and self.day == other.day and self.hour == other.hour and self.minute == other.minute):
+            return True
+        else:
+            return False
+    
+    def __lt__(self, other):
+        if (self.year < other.year):
+            return True
+        elif (self.year > other.year):
+            return False
+
+        if (self.month < other.month):
+            return True
+        elif (self.month > other.month):
+            return False
+        
+        if (self.day < other.day):
+            return True
+        elif (self.day > other.day):
+            return False
+        
+        if (self.hour < other.hour):
+            return True
+        elif (self.hour > other.hour):
+            return False
+
+        if (self.minute < other.minute):
+            return True
+        elif (self.minute > other.minute):
+            return False
+        
+        return False
+    
+    def __str__(self):
+        return f"{self.year:04}-{self.month:02}-{self.day:02} {self.hour:02}:{self.minute:02}"
+    
+    def __repr__(self):
+        return self.__str__()
 
 class GUISetup(object):
     def __init__(self, main_window):
@@ -35,6 +93,7 @@ class GUISetup(object):
         self.frameFont = None
 
         self.scan_file_paths = None
+        self.scan_schedule = []
 
         self._setupUi()
 
@@ -50,7 +109,6 @@ class GUISetup(object):
         self._setupConfigFrame()
         self._setupMenuActions()
         self._setupToolbar()
-        
 
         self.viewVaultFrame.hide()
         self.configFrame.hide()
@@ -236,6 +294,47 @@ class GUISetup(object):
         schedScanLabel.setScaledContents(False)
         schedScanLabel.setObjectName("schedScanLabel")
         schedScanLabel.setText("SCHEDULE SCAN")
+        
+        calendarInput = QtWidgets.QCalendarWidget(self.schedScanFrame)
+        calendarInput.setGeometry(QtCore.QRect(30, 75, 300, 215))
+
+        WIDTH = 70
+        SPACING = 10
+        HOUR_POS = 30+300 + SPACING
+        MINUTE_POS = HOUR_POS + SPACING + WIDTH
+        AMPM_POS = MINUTE_POS + SPACING + WIDTH
+        hourInput = QtWidgets.QComboBox(self.schedScanFrame)
+        hourInput.setGeometry(QtCore.QRect(HOUR_POS, 75, WIDTH, 25))
+        hourInput.addItem("12")
+        for hour in range(1, 12, 1):
+            hourInput.addItem(f"{hour:02}")
+        
+        
+        minuteInput = QtWidgets.QComboBox(self.schedScanFrame)
+        minuteInput.setGeometry(QtCore.QRect(MINUTE_POS, 75, WIDTH, 25))
+        for minute in range(0, 60, 1):
+            minuteInput.addItem(f"{minute:02}")
+
+        ampmInput = QtWidgets.QComboBox(self.schedScanFrame)
+        ampmInput.setGeometry(QtCore.QRect(AMPM_POS, 75, WIDTH, 25))
+        ampmInput.addItem("AM")
+        ampmInput.addItem("PM")
+
+        scheduleButton = QtWidgets.QPushButton(self.schedScanFrame)
+        scheduleButton.setGeometry(QtCore.QRect(MINUTE_POS-30, 120, WIDTH*2, 40))
+        scheduleButton.setText("Schedule")
+
+        scheduleButton.clicked.connect(lambda:self._fetchScheduledDateAndTime(calendarInput, hourInput, minuteInput, ampmInput))
+
+    def _fetchScheduledDateAndTime(self, calendarInput, hourInput, minuteInput, ampmInput):
+        date = calendarInput.selectedDate()
+        year = date.year()
+        month = date.month()
+        day = date.day()
+        hour = hourInput.currentText()
+        minute = minuteInput.currentText()
+        ampm = ampmInput.currentText()
+        bisect.insort(self.scan_schedule, DateTime(year, month, day, hour, minute, ampm))
 
     def _setupViewVaultFrame(self):
         self.viewVaultFrame = QtWidgets.QFrame(self.centralwidget)
@@ -302,5 +401,8 @@ class GUI(GUISetup):
     
     def displayError(self, message):
         super()._displayError(message)
+    
+    def getSchedule(self):
+        return self.scan_schedule
     
 
