@@ -66,7 +66,7 @@ class ScanSchedule(object):
                 self.year += 1
 
     def __eq__(self, other):
-        if (self.year == other.year and self.month == other.month and self.day == other.day and self.hour == other.hour and self.minute == other.minute):
+        if (self.year == other.year and self.month == other.month and self.day == other.day and self.hour == other.hour and self.minute == other.minute and self.repeat == other.repeat):
             return True
         else:
             return False
@@ -97,6 +97,11 @@ class ScanSchedule(object):
         elif (self.minute > other.minute):
             return False
         
+        if (self.repeat < other.repeat):
+            return True
+        elif (self.repeat > other.repeat):
+            return False
+
         return False
     
     def __str__(self):
@@ -444,6 +449,20 @@ class GUISetup(object):
                     item = schedList.takeItem(index)
                     schedList.removeItemWidget(item)
                     del self.scan_schedule[index]
+    
+    def _updateSelectedSchedule(self, schedList):
+        if (len(self.scan_schedule) > 0 and schedList.currentRow() >= 0):
+            index = schedList.currentRow()
+            item = schedList.takeItem(index)
+            schedList.removeItemWidget(item)
+            schedule = self.scan_schedule[index]
+            del self.scan_schedule[index]
+            if(schedule.next_schedule() and schedule not in self.scan_schedule):
+                bisect.insort(self.scan_schedule, schedule)
+                index = self.scan_schedule.index(schedule)
+                schedList.insertItem(index, QtWidgets.QListWidgetItem(str(schedule)))
+
+
     
     def _clearSchedule(self, schedList):
         if (len(self.scan_schedule) > 0):
