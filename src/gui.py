@@ -11,9 +11,16 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from datetime import datetime
 import bisect
+import enum
 
-class DateTime(object):
-    def __init__(self, year, month, day, hour, minute, ampm):
+class Repeat(enum.IntEnum):
+        ONCE = 1
+        DAILY = 2
+        WEEKLY = 3
+        MONTHLY = 4
+
+class ScanSchedule(object):
+    def __init__(self, year, month, day, hour, minute, ampm, repeat):
         self.year = int(year)
         self.month = int(month)
         self.day = int(day)
@@ -27,7 +34,37 @@ class DateTime(object):
             self.hour = hour + 12
 
         self.minute = int(minute)
+        self.repeat = repeat
     
+    def next_schedule(self):
+        if (self.repeat == Repeat.ONCE):
+            return False
+        elif(self.repeat == Repeat.DAILY):
+            self._incr_day()
+        elif(self.repeat == Repeat.WEEKLY):
+            for _ in range(7):
+                self._incr_day()
+        elif(self.repeat == Repeat.MONTHLY):
+            self.month += 1
+            if (self.month == 13):
+                self.month = 1
+                self.year += 1
+            if (self.day == 31 and (self.month == 9 or self.month == 4 or self.month == 6 or self.month == 11)):
+                self.day = 30
+        return True
+    
+    def _incr_day(self):
+        self.day += 1
+        if (self.day == 31 and (self.month == 9 or self.month == 4 or self.month == 6 or self.month == 11)):
+            self.day = 1
+            self.month += 1
+        elif (self.day == 32):
+            self.day = 1
+            self.month += 1
+            if (self.month == 13):
+                self.month = 1
+                self.year += 1
+
     def __eq__(self, other):
         if (self.year == other.year and self.month == other.month and self.day == other.day and self.hour == other.hour and self.minute == other.minute):
             return True
@@ -63,7 +100,17 @@ class DateTime(object):
         return False
     
     def __str__(self):
-        return f"{self.year:04}-{self.month:02}-{self.day:02} {self.hour:02}:{self.minute:02}"
+        r = None
+        if (self.repeat == Repeat.ONCE):
+            r = "ONCE"
+        elif (self.repeat == Repeat.DAILY):
+            r = "DAILY"
+        elif (self.repeat == Repeat.WEEKLY):
+            r = "WEEKLY"
+        elif (self.repeat == Repeat.MONTHLY):
+            r = "MONTHLY"
+
+        return f"{self.year:04}-{self.month:02}-{self.day:02} {self.hour:02}:{self.minute:02} [{r}]"
     
     def __repr__(self):
         return self.__str__()
@@ -120,7 +167,7 @@ class GUISetup(object):
         self.mainWindow.setWindowModality(QtCore.Qt.NonModal)
         self.mainWindow.setEnabled(True)
         self.mainWindow.resize(800, 600)
-        self.mainWindow.setWindowTitle("Hodealex Antivirus")
+        self.mainWindow.setWindowTitle("Hodalex Antivirus")
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -311,7 +358,6 @@ class GUISetup(object):
         newSchedGroupLayout.addLayout(n2Layout)
         n3Layout = QtWidgets.QVBoxLayout()
         n2Layout.addLayout(n3Layout)
-        n2Layout.addSpacerItem(QtWidgets.QSpacerItem(10, 100))
         timeInputLayout = QtWidgets.QHBoxLayout()
         n3Layout.addLayout(timeInputLayout)
         n3Layout.addSpacerItem(QtWidgets.QSpacerItem(10, 10))
@@ -329,6 +375,21 @@ class GUISetup(object):
         timeInputLayout.addWidget(hourInput)
         timeInputLayout.addWidget(minuteInput)
         timeInputLayout.addWidget(ampmInput)
+        
+        oneTimeButton = QtWidgets.QRadioButton("Once", self.schedScanFrame)
+        oneTimeButton.setChecked(True)
+        dailyButton = QtWidgets.QRadioButton("Daily", self.schedScanFrame)
+        weeklyButton = QtWidgets.QRadioButton("Weekly", self.schedScanFrame)
+        monthlyButton = QtWidgets.QRadioButton("Monthly", self.schedScanFrame)
+        n3Layout.addWidget(oneTimeButton)
+        n3Layout.addWidget(dailyButton)
+        n3Layout.addWidget(weeklyButton)
+        n3Layout.addWidget(monthlyButton)
+        choiceGroup = QtWidgets.QButtonGroup(self.schedScanFrame)
+        choiceGroup.addButton(oneTimeButton, int(Repeat.ONCE))
+        choiceGroup.addButton(dailyButton, int(Repeat.DAILY))
+        choiceGroup.addButton(weeklyButton, int(Repeat.WEEKLY))
+        choiceGroup.addButton(monthlyButton, int(Repeat.MONTHLY))
 
         scheduleButton = QtWidgets.QPushButton(self.schedScanFrame)
         scheduleButton.setText("Schedule")
@@ -351,11 +412,11 @@ class GUISetup(object):
         currSchedButtonLayout.addWidget(clearSchedButton)
         currSchedButtonLayout.addSpacerItem(QtWidgets.QSpacerItem(50, 50))
 
-        scheduleButton.clicked.connect(lambda:self._fetchScheduledDateAndTime(calendarInput, hourInput, minuteInput, ampmInput, schedList))
+        scheduleButton.clicked.connect(lambda:self._fetchScheduledDateAndTime(calendarInput, hourInput, minuteInput, ampmInput, schedList, choiceGroup))
         deleteSchedButton.clicked.connect(lambda:self._removeSelectedSchedule(schedList))
         clearSchedButton.clicked.connect(lambda:self._clearSchedule(schedList))
 
-    def _fetchScheduledDateAndTime(self, calendarInput, hourInput, minuteInput, ampmInput, schedList):
+    def _fetchScheduledDateAndTime(self, calendarInput, hourInput, minuteInput, ampmInput, schedList, choiceGroup):
         date = calendarInput.selectedDate()
         year = date.year()
         month = date.month()
@@ -363,7 +424,8 @@ class GUISetup(object):
         hour = hourInput.currentText()
         minute = minuteInput.currentText()
         ampm = ampmInput.currentText()
-        new_schedule = DateTime(year, month, day, hour, minute, ampm)
+        repeat = choiceGroup.checkedId()
+        new_schedule = ScanSchedule(year, month, day, hour, minute, ampm, repeat)
         if (new_schedule not in self.scan_schedule):
             bisect.insort(self.scan_schedule, new_schedule)
             index = self.scan_schedule.index(new_schedule)
@@ -396,10 +458,6 @@ class GUISetup(object):
                     item = schedList.takeItem(0)
                     schedList.removeItemWidget(item)
                     del self.scan_schedule[0]
-
-
-        
-
 
     def _setupViewVaultFrame(self):
         self.viewVaultFrame = QtWidgets.QFrame(self.centralwidget)
