@@ -295,38 +295,67 @@ class GUISetup(object):
         schedScanLabel.setObjectName("schedScanLabel")
         schedScanLabel.setText("SCHEDULE SCAN")
         
-        calendarInput = QtWidgets.QCalendarWidget(self.schedScanFrame)
-        calendarInput.setGeometry(QtCore.QRect(30, 75, 300, 215))
+        newSchedGroup = QtWidgets.QGroupBox("Add New Schedule", self.schedScanFrame)
+        newSchedGroup.setGeometry(QtCore.QRect(30, 75, 600, 220))
+        newSchedGroupLayout = QtWidgets.QHBoxLayout()
+        newSchedGroup.setLayout(newSchedGroupLayout)
+        calendarLayout = QtWidgets.QHBoxLayout()
+        newSchedGroupLayout.addLayout(calendarLayout)
 
-        WIDTH = 70
-        SPACING = 10
-        HOUR_POS = 30+300 + SPACING
-        MINUTE_POS = HOUR_POS + SPACING + WIDTH
-        AMPM_POS = MINUTE_POS + SPACING + WIDTH
+        calendarInput = QtWidgets.QCalendarWidget(self.schedScanFrame)
+        calendarInput.setVerticalHeaderFormat(QtWidgets.QCalendarWidget.NoVerticalHeader)
+        calendarLayout.addWidget(calendarInput)
+        newSchedGroupLayout.addSpacerItem(QtWidgets.QSpacerItem(30, 10))
+
+        n2Layout = QtWidgets.QVBoxLayout()
+        newSchedGroupLayout.addLayout(n2Layout)
+        n3Layout = QtWidgets.QVBoxLayout()
+        n2Layout.addLayout(n3Layout)
+        n2Layout.addSpacerItem(QtWidgets.QSpacerItem(10, 100))
+        timeInputLayout = QtWidgets.QHBoxLayout()
+        n3Layout.addLayout(timeInputLayout)
+        n3Layout.addSpacerItem(QtWidgets.QSpacerItem(10, 10))
+
         hourInput = QtWidgets.QComboBox(self.schedScanFrame)
-        hourInput.setGeometry(QtCore.QRect(HOUR_POS, 75, WIDTH, 25))
         hourInput.addItem("12")
         for hour in range(1, 12, 1):
             hourInput.addItem(f"{hour:02}")
-        
-        
         minuteInput = QtWidgets.QComboBox(self.schedScanFrame)
-        minuteInput.setGeometry(QtCore.QRect(MINUTE_POS, 75, WIDTH, 25))
         for minute in range(0, 60, 1):
             minuteInput.addItem(f"{minute:02}")
-
         ampmInput = QtWidgets.QComboBox(self.schedScanFrame)
-        ampmInput.setGeometry(QtCore.QRect(AMPM_POS, 75, WIDTH, 25))
         ampmInput.addItem("AM")
         ampmInput.addItem("PM")
+        timeInputLayout.addWidget(hourInput)
+        timeInputLayout.addWidget(minuteInput)
+        timeInputLayout.addWidget(ampmInput)
 
         scheduleButton = QtWidgets.QPushButton(self.schedScanFrame)
-        scheduleButton.setGeometry(QtCore.QRect(MINUTE_POS-30, 120, WIDTH*2, 40))
         scheduleButton.setText("Schedule")
+        n3Layout.addWidget(scheduleButton)
 
-        scheduleButton.clicked.connect(lambda:self._fetchScheduledDateAndTime(calendarInput, hourInput, minuteInput, ampmInput))
+        currentScheduleGroup = QtWidgets.QGroupBox("Current Schedule", self.schedScanFrame)
+        currentScheduleGroup.setGeometry(QtCore.QRect(30, 320, 600, 230))
+        currSchedGroupLayout = QtWidgets.QHBoxLayout()
+        currentScheduleGroup.setLayout(currSchedGroupLayout)
 
-    def _fetchScheduledDateAndTime(self, calendarInput, hourInput, minuteInput, ampmInput):
+        schedList = QtWidgets.QListWidget(self.schedScanFrame)
+        currSchedGroupLayout.addWidget(schedList)
+
+        currSchedButtonLayout = QtWidgets.QVBoxLayout()
+        currSchedGroupLayout.addLayout(currSchedButtonLayout)
+        deleteSchedButton = QtWidgets.QPushButton("Delete",self.schedScanFrame)
+        clearSchedButton = QtWidgets.QPushButton("Clear", self.schedScanFrame)
+        currSchedButtonLayout.addSpacerItem(QtWidgets.QSpacerItem(50, 50))
+        currSchedButtonLayout.addWidget(deleteSchedButton)
+        currSchedButtonLayout.addWidget(clearSchedButton)
+        currSchedButtonLayout.addSpacerItem(QtWidgets.QSpacerItem(50, 50))
+
+        scheduleButton.clicked.connect(lambda:self._fetchScheduledDateAndTime(calendarInput, hourInput, minuteInput, ampmInput, schedList))
+        deleteSchedButton.clicked.connect(lambda:self._removeSelectedSchedule(schedList))
+        clearSchedButton.clicked.connect(lambda:self._clearSchedule(schedList))
+
+    def _fetchScheduledDateAndTime(self, calendarInput, hourInput, minuteInput, ampmInput, schedList):
         date = calendarInput.selectedDate()
         year = date.year()
         month = date.month()
@@ -337,7 +366,40 @@ class GUISetup(object):
         new_schedule = DateTime(year, month, day, hour, minute, ampm)
         if (new_schedule not in self.scan_schedule):
             bisect.insort(self.scan_schedule, new_schedule)
-        self._displayError(self.scan_schedule)
+            index = self.scan_schedule.index(new_schedule)
+            schedList.insertItem(index, QtWidgets.QListWidgetItem(str(new_schedule)))
+    
+    def _removeSelectedSchedule(self, schedList):
+        if (len(self.scan_schedule) > 0 and schedList.currentRow() >= 0):
+            confirm = QtWidgets.QMessageBox()
+            confirm.setWindowIcon(self.schedScanIcon)
+            confirm.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            confirm.setText("Are you sure you want to delete scheduled scan?")
+            confirm.setWindowTitle("Delete Scheduled Scan")
+            retval = confirm.exec()
+            if (retval == QtWidgets.QMessageBox.Yes):
+                    index = schedList.currentRow()
+                    item = schedList.takeItem(index)
+                    schedList.removeItemWidget(item)
+                    del self.scan_schedule[index]
+    
+    def _clearSchedule(self, schedList):
+        if (len(self.scan_schedule) > 0):
+            confirm = QtWidgets.QMessageBox()
+            confirm.setWindowIcon(self.schedScanIcon)
+            confirm.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            confirm.setText("Are you sure you want to remove all scheduled scans?")
+            confirm.setWindowTitle("Clear Schedule")
+            retval = confirm.exec()
+            if (retval == QtWidgets.QMessageBox.Yes):
+                for _ in range(len(self.scan_schedule)):
+                    item = schedList.takeItem(0)
+                    schedList.removeItemWidget(item)
+                    del self.scan_schedule[0]
+
+
+        
+
 
     def _setupViewVaultFrame(self):
         self.viewVaultFrame = QtWidgets.QFrame(self.centralwidget)
