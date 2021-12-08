@@ -334,7 +334,10 @@ class GUISetup(object):
         hour = hourInput.currentText()
         minute = minuteInput.currentText()
         ampm = ampmInput.currentText()
-        bisect.insort(self.scan_schedule, DateTime(year, month, day, hour, minute, ampm))
+        new_schedule = DateTime(year, month, day, hour, minute, ampm)
+        if (new_schedule not in self.scan_schedule):
+            bisect.insort(self.scan_schedule, new_schedule)
+        self._displayError(self.scan_schedule)
 
     def _setupViewVaultFrame(self):
         self.viewVaultFrame = QtWidgets.QFrame(self.centralwidget)
