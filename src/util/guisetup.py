@@ -3,10 +3,12 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from datetime import datetime
 import bisect
 
+import config
 from util.repeat import Repeat
 from util.scanschedule import ScanSchedule
 from counter_measures import CounterMeasures
-import config
+from util.quarantinedfile import QFileList
+
 
 class GUISetup(object):
     def __init__(self, main_window):
@@ -34,11 +36,11 @@ class GUISetup(object):
 
         self.scan_file_paths = None
         self.scan_schedule = []
-        self.vaultData = []
         self.vaultList = None
 
         self.counter_measures = CounterMeasures(config.QUARANTINE_FOLDER)
-
+        
+        QFileList.load()
         self._setupUi()
 
     def _setupUi(self):
@@ -407,6 +409,8 @@ class GUISetup(object):
         self.vaultList.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.vaultList.setCornerButtonEnabled(True)
         self.vaultList.horizontalHeader().setStretchLastSection(True)
+        self._updateVault()
+
         listLayout.addWidget(self.vaultList)
         listLayout.addSpacerItem(QtWidgets.QSpacerItem(20, 10))
         buttonLayout = QtWidgets.QVBoxLayout()
@@ -421,6 +425,27 @@ class GUISetup(object):
         buttonLayout.addWidget(deleteButton)
         buttonLayout.addSpacerItem(QtWidgets.QSpacerItem(10, 350))
     
+    def _updateVault(self):
+        self.vaultList.clear()
+        for i in range(QFileList.len()):
+            qfile = QFileList.get(i)
+            self._addQuarantinedFile(qfile)
+
+    def _addQuarantinedFile(self, qfile):
+        timestampItem = QtWidgets.QTableWidgetItem(str(qfile.time))
+        timestampItem.setFlags(timestampItem.flags() ^ QtCore.Qt.ItemIsEditable)
+        timestampItem.setToolTip(str(qfile.time))
+        nameItem = QtWidgets.QTableWidgetItem(qfile.name)
+        nameItem.setFlags(nameItem.flags() ^ QtCore.Qt.ItemIsEditable)
+        nameItem.setToolTip(qfile.name)
+        locationItem = QtWidgets.QTableWidgetItem(qfile.path)
+        locationItem.setFlags(locationItem.flags() ^ QtCore.Qt.ItemIsEditable)
+        locationItem.setToolTip(qfile.path)
+        self.vaultList.insertRow(0)
+        self.vaultList.setItem(0, 0, timestampItem)
+        self.vaultList.setItem(0, 1, nameItem)
+        self.vaultList.setItem(0, 2, locationItem)  
+
     def _deleteQuarantinedFile(self, confirm = None):
         items = self.vaultList.selectedItems()
         if (len(items) > 0):
@@ -436,8 +461,9 @@ class GUISetup(object):
                 for i in range(0,len(items), 3):
                     item = items[i]
                     index = self.vaultList.row(item)
-                    os.remove(os.path.join(config.QUARANTINE_FOLDER, self.vaultData[index].name))
-                    del self.vaultData[index]
+                    qfile = QFileList.get(index)
+                    os.remove(os.path.join(config.QUARANTINE_FOLDER, qfile.name))
+                    QFileList.remove(qfile)
                     self.vaultList.removeRow(index)
                 
     def _restoreQuarantinedFile(self):
@@ -453,27 +479,12 @@ class GUISetup(object):
                 for i in range(0,len(items), 3):
                     item = items[i]
                     index = self.vaultList.row(item)
-                    file = os.path.join(config.QUARANTINE_FOLDER, self.vaultData[index].name)
-                    os.chmod(file, self.vaultData[index].old_perm)
-                    os.rename(file, self.vaultData[index].path)
-                    del self.vaultData[index]
-                    self.vaultList.removeRow(index)
-
-    def _addQuarantinedFile(self, qfile):
-        self.vaultData.insert(0, qfile)
-        timestampItem = QtWidgets.QTableWidgetItem(str(qfile.time))
-        timestampItem.setFlags(timestampItem.flags() ^ QtCore.Qt.ItemIsEditable)
-        timestampItem.setToolTip(str(qfile.time))
-        nameItem = QtWidgets.QTableWidgetItem(qfile.name)
-        nameItem.setFlags(nameItem.flags() ^ QtCore.Qt.ItemIsEditable)
-        nameItem.setToolTip(qfile.name)
-        locationItem = QtWidgets.QTableWidgetItem(qfile.path)
-        locationItem.setFlags(locationItem.flags() ^ QtCore.Qt.ItemIsEditable)
-        locationItem.setToolTip(qfile.path)
-        self.vaultList.insertRow(0)
-        self.vaultList.setItem(0, 0, timestampItem)
-        self.vaultList.setItem(0, 1, nameItem)
-        self.vaultList.setItem(0, 2, locationItem)           
+                    qfile = QFileList.get(index)
+                    file = os.path.join(config.QUARANTINE_FOLDER, qfile.name)
+                    os.chmod(file, qfile.old_perm)
+                    os.rename(file, qfile.path)
+                    QFileList.remove(qfile)
+                    self.vaultList.removeRow(index)         
     
     def _setupConfigFrame(self):
         self.configFrame = QtWidgets.QFrame(self.centralwidget)
