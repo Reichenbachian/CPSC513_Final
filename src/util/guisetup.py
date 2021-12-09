@@ -2,12 +2,13 @@ import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 from datetime import datetime
 import bisect
+import pandas as pd 
 
 import config
 from util.repeat import Repeat
 from util.scanschedule import ScanSchedule
 from counter_measures import CounterMeasures
-from util.quarantinedfile import QFileList
+from util.datalists import QFileList, AllowList
 
 
 class GUISetup(object):
@@ -41,6 +42,7 @@ class GUISetup(object):
         self.counter_measures = CounterMeasures(config.QUARANTINE_FOLDER)
         
         QFileList.load()
+        AllowList.load()
         self._setupUi()
 
     def _setupUi(self):
@@ -509,6 +511,86 @@ class GUISetup(object):
         configLabel.setObjectName("configLabel")
         configLabel.setText("CONFIG")
 
+        allowListGroup = QtWidgets.QGroupBox("Allowed List", self.configFrame)
+        allowListGroup.setGeometry(QtCore.QRect(20, 60, 650, 250))
+        allowListLayout = QtWidgets.QHBoxLayout()
+        allowListGroup.setLayout(allowListLayout)
+        signatureListGroup = QtWidgets.QGroupBox("Signature List", self.configFrame)
+        signatureListGroup.setGeometry(QtCore.QRect(20, 330, 650, 250))
+        signatureListLayout = QtWidgets.QVBoxLayout()
+        signatureListGroup.setLayout(signatureListLayout)
+
+        allowListWidget = QtWidgets.QListWidget(self.configFrame)
+        allowListLayout.addWidget(allowListWidget)
+        v1Layout = QtWidgets.QVBoxLayout()
+        allowListLayout.addLayout(v1Layout)
+        addButton = QtWidgets.QPushButton("Add", self.configFrame)
+        addButton.clicked.connect(lambda:self._addToAllowList(allowListWidget))
+        v1Layout.addWidget(addButton)
+        removeButton = QtWidgets.QPushButton("Remove", self.configFrame)
+        removeButton.clicked.connect(lambda:self._removeFromAllowList(allowListWidget))
+        v1Layout.addWidget(removeButton)
+        v1Layout.addSpacerItem(QtWidgets.QSpacerItem(5, 120))
+        self._updateAllowList(allowListWidget)
+        
+
+        h1Layout = QtWidgets.QHBoxLayout()
+        signatureListLayout.addLayout(h1Layout)
+        signatureListWidget = QtWidgets.QListWidget(self.configFrame)
+        signatureListLayout.addWidget(signatureListWidget)
+        signatureTypeChoice = QtWidgets.QComboBox(self.configFrame)
+        signatureTypeChoice.addItem("Chunk")
+        signatureTypeChoice.addItem("Regex")
+        signatureTypeChoice.addItem("Static")
+        signatureTypeChoice.currentTextChanged.connect(lambda:self._updateSignatureList(signatureListWidget, signatureTypeChoice))
+        self._updateSignatureList(signatureListWidget, signatureTypeChoice)
+        h1Layout.addWidget(signatureTypeChoice)
+        h1Layout.addSpacerItem(QtWidgets.QSpacerItem(500, 10))
+
+    def _addToAllowList(self, allowListWidget):
+        selectFileDialog = QtWidgets.QFileDialog(self.mainWindow)
+        selectFileDialog.setFileMode(QtWidgets.QFileDialog.ExistingFile)
+        selectFileDialog.setViewMode(QtWidgets.QFileDialog.Detail)
+        selectFileDialog.setWindowTitle("Select exception file...")
+        if(selectFileDialog.exec()):
+            file_paths = selectFileDialog.selectedFiles()
+            for path in file_paths:
+                if (not AllowList.find(path)):
+                    AllowList.insert(0, path)
+        self._updateAllowList(allowListWidget)
+    
+    def _removeFromAllowList(self, allowListWidget):
+        index = allowListWidget.currentRow()
+        if(index >= 0):
+            item = AllowList.get(index)
+            AllowList.remove(item)
+            self._updateAllowList(allowListWidget)
+
+    def _updateAllowList(self, allowListWidget):
+        allowListWidget.clear()
+        for i in range(AllowList.len()-1, -1, -1):
+            path = AllowList.get(i)
+            item = QtWidgets.QListWidgetItem(path)
+            item.setToolTip(path)
+            allowListWidget.addItem(item)
+    
+    def _updateSignatureList(self, signatureListWidget, choice):
+        signatureListWidget.clear()
+        path = None
+        if (choice.currentText() == "Chunk"):
+            path = config.CHUNK_HASH_FILE
+        elif (choice.currentText() == "Regex"):
+            path = config.REGEX_FILE
+        elif (choice.currentText() == "Static"):
+            path = config.STATIC_HASH_FILE
+        else:
+            self._displayError("Unknown signature type")
+            return
+        signatures = pd.read_csv(path)
+        for i,s in enumerate(signatures['signature']):
+            signatureListWidget.addItem(QtWidgets.QListWidgetItem(f"{s} | Severity: {signatures['severity'][i]}"))
+
+
     def _displayError(self, message):
         error_dialog = QtWidgets.QErrorMessage()
         error_dialog.showMessage(str(message))
@@ -516,5 +598,5 @@ class GUISetup(object):
         error_dialog.setWindowTitle("Error")
         error_dialog.exec()
     
-    def scan_now(self):
+    def start_scan(self):
         raise NotImplementedError
