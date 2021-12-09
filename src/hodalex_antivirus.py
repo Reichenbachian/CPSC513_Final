@@ -3,6 +3,7 @@ import click
 import config
 from scanner import SCANNERS
 from counter_measures import CounterMeasures
+import numpy as np
 from PyQt5.QtWidgets import QApplication, QFrame, QMainWindow
 from gui import GUI
 from virus_info import VirusSeverity
@@ -16,7 +17,7 @@ def run_folder_scan(folder):
 	for scanner in SCANNERS:
 		for virus, virus_info in scanner.scan_folder(folder):
 			if (not AllowList.find(virus)):
-				if (virus_info == VirusSeverity.QUARANTINE):
+				if np.any(virus_info == VirusSeverity.QUARANTINE):
 					perm = oct(os.stat(virus).st_mode)
 					qfile = QuarantinedFile(os.path.basename(virus), virus, perm, datetime.now())
 					QFileList.insert(0, qfile)
