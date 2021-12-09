@@ -20,6 +20,7 @@ class CounterMeasures():
 		logger.warning(f"A virus has been detected in the file {file}. It is being quarantined.")
 		new_path = os.path.join(self.quarantine_folder, os.path.basename(file))
 		os.rename(file, new_path)
+		os.chmod(new_path, 0o444)
 
 	def remove_file(self, file):
 		logger.warning(f"A virus has been detected in the file {file}. It is being removed.")
