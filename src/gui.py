@@ -1,5 +1,6 @@
 import os
-from util.quarantinedfile import QuarantinedFile, QFileList
+from util.quarantinedfile import QuarantinedFile
+from util.datalists import QFileList
 from util.scanschedule import ScanSchedule
 from scanner import SCANNERS
 
