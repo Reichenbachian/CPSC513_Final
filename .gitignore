@@ -3,3 +3,6 @@ example_folder/
 
 ## Ignore python cache files
 __pycache__
+
+##Ignoring virtual environment files
+Pipfile*
