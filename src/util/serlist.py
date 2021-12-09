@@ -3,6 +3,8 @@ import pickle
 class AbstractSerializableList(object):
     '''
         A serializable list
+        
+        Usage: inherit class and set file_path to valid file to store list in
     '''
     list = []
     loaded = False
