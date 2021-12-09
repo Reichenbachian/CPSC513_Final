@@ -1,9 +1,12 @@
+import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 from datetime import datetime
 import bisect
 
-from repeat import Repeat
-from scanschedule import ScanSchedule
+from util.repeat import Repeat
+from util.scanschedule import ScanSchedule
+from counter_measures import CounterMeasures
+import config
 
 class GUISetup(object):
     def __init__(self, main_window):
@@ -33,6 +36,8 @@ class GUISetup(object):
         self.scan_schedule = []
         self.vaultData = []
         self.vaultList = None
+
+        self.counter_measures = CounterMeasures(config.QUARANTINE_FOLDER)
 
         self._setupUi()
 
@@ -426,15 +431,13 @@ class GUISetup(object):
 
             retval = confirm.exec()
             if (retval == QtWidgets.QMessageBox.Yes):
-                
                 for i in range(0,len(items), 3):
                     item = items[i]
                     index = self.vaultList.row(item)
+                    os.remove(os.path.join(config.QUARANTINE_FOLDER, self.vaultData[index].name))
                     del self.vaultData[index]
                     self.vaultList.removeRow(index)
-        
-        #TODO: Need to do actual delection from disk
-    
+                
     def _restoreQuarantinedFile(self):
         items = self.vaultList.selectedItems()
         if (len(items) > 0):
@@ -443,11 +446,18 @@ class GUISetup(object):
             confirm.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
             confirm.setText("Are you sure you want to restore selected quanrantined file(s)?")
             confirm.setWindowTitle("Restore Quaratined File")
-            self._deleteQuarantinedFile(confirm)
+            retval = confirm.exec()
+            if (retval == QtWidgets.QMessageBox.Yes):
+                for i in range(0,len(items), 3):
+                    item = items[i]
+                    index = self.vaultList.row(item)
+                    file = os.path.join(config.QUARANTINE_FOLDER, self.vaultData[index].name)
+                    os.chmod(file, self.vaultData[index].old_perm)
+                    os.rename(file, self.vaultData[index].path)
+                    del self.vaultData[index]
+                    self.vaultList.removeRow(index)
 
-        #TODO: Need to do actual restoration to disk
-    
-    def addQuarantinedFile(self, qfile):
+    def _addQuarantinedFile(self, qfile):
         self.vaultData.insert(0, qfile)
         timestampItem = QtWidgets.QTableWidgetItem(str(qfile.time))
         timestampItem.setFlags(timestampItem.flags() ^ QtCore.Qt.ItemIsEditable)
@@ -455,16 +465,13 @@ class GUISetup(object):
         nameItem = QtWidgets.QTableWidgetItem(qfile.name)
         nameItem.setFlags(nameItem.flags() ^ QtCore.Qt.ItemIsEditable)
         nameItem.setToolTip(qfile.name)
-        locationItem = QtWidgets.QTableWidgetItem(qfile.dir)
+        locationItem = QtWidgets.QTableWidgetItem(qfile.path)
         locationItem.setFlags(locationItem.flags() ^ QtCore.Qt.ItemIsEditable)
-        locationItem.setToolTip(qfile.dir)
+        locationItem.setToolTip(qfile.path)
         self.vaultList.insertRow(0)
         self.vaultList.setItem(0, 0, timestampItem)
         self.vaultList.setItem(0, 1, nameItem)
-        self.vaultList.setItem(0, 2, locationItem)
-
-        #TODO: Need to do actual adding to vault
-            
+        self.vaultList.setItem(0, 2, locationItem)           
     
     def _setupConfigFrame(self):
         self.configFrame = QtWidgets.QFrame(self.centralwidget)

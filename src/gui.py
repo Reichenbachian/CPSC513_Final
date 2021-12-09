@@ -1,6 +1,7 @@
+import os
+from util.quarantinedfile import QuarantinedFile
 from util.scanschedule import ScanSchedule
 from scanner import SCANNERS
-from counter_measures import CounterMeasures
 
 from util.guisetup import GUISetup
 
@@ -33,13 +34,16 @@ class GUI(GUISetup):
         '''
         return self.scan_schedule
     
-    def addQuarantinedFile(self, qfile):
+    def addQuarantinedFile(self, file):
         '''
             Add file to vault
 
-            Idiom: self.addQuarantinedFile(QuarantinedFile(os.path.basename(file), file, datetime.now()))
+            Idiom: self.addQuarantinedFile(QuarantinedFile(os.path.basename(file), file, oct(os.stat(file).st_mode), os.datetime.now()))
         '''
-        super().addQuarantinedFile(qfile)
+        st = os.stat(file)
+        perm = oct(st.st_mode)
+        qfile = QuarantinedFile(os.path.basename(file), file, perm, os.datetime.now())
+        super()._addQuarantinedFile(qfile)
     
     def start_scan(self):
         '''
