@@ -33,6 +33,7 @@ def main(scan_folder, gui):
 		run_folder_scan(scan_folder)
 	elif gui:
 		app = QApplication([])
+		app.aboutToQuit.connect(lambda: QFileList.save())
 		window = QMainWindow()
 		g = GUI(window)
 		window.show()

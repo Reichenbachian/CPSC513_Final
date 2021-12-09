@@ -427,7 +427,7 @@ class GUISetup(object):
     
     def _updateVault(self):
         self.vaultList.clear()
-        for i in range(QFileList.len()):
+        for i in range(QFileList.len()-1, -1, -1):
             qfile = QFileList.get(i)
             self._addQuarantinedFile(qfile)
 
