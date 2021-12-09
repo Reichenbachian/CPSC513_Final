@@ -3,8 +3,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from datetime import datetime
 import bisect
 
-from repeat import Repeat
-from scanschedule import ScanSchedule
+from util.repeat import Repeat
+from util.scanschedule import ScanSchedule
 from counter_measures import CounterMeasures
 import config
 

@@ -1,4 +1,4 @@
-from repeat import Repeat
+from util.repeat import Repeat
 
 class ScanSchedule(object):
     def __init__(self, year, month, day, hour, minute, ampm, repeat):
