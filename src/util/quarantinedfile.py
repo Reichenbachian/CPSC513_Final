@@ -1,8 +1,7 @@
-import os
-import pickle
 import config
 
 from datetime import datetime
+from util.serlist import AbstractSerializableList
 
 class QuarantinedFile(object):
     '''
@@ -39,46 +38,8 @@ class QuarantinedFile(object):
         else:
             return False
 
-class QFileList(object):
+class QFileList(AbstractSerializableList):
     '''
         A serializable list of quantine file metadata
     '''
-    qfile_list = []
-    loaded = False
-
-    @classmethod
-    def insert(cls, i, qFile):
-        '''
-            qFile:  QuarantinedFile object
-        '''
-        cls.qfile_list.insert(i, qFile)
-        
-    @classmethod
-    def remove(cls, qFile):
-        '''
-            qFile:  QuarantinedFile object
-        '''
-        if (qFile in cls.qfile_list):
-            cls.qfile_list.remove(qFile)
-
-    @classmethod
-    def save(cls):
-        with open(config.QFILE_LIST_FILE, "wb") as qfile:
-            pickle.dump(cls.qfile_list, qfile)
-
-    @classmethod
-    def load(cls):
-        if (not cls.loaded):
-            try:
-                with open(config.QFILE_LIST_FILE, "rb") as qfile:
-                    cls.qfile_list = pickle.load(qfile)
-                    cls.loaded = True
-            except FileNotFoundError:
-                pass 
-    @classmethod
-    def get(cls, index):
-        return cls.qfile_list[index]
-    
-    @classmethod
-    def len(cls):
-        return len(cls.qfile_list)
+    file_path = config.QFILE_LIST_FILE
