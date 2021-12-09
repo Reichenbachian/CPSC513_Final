@@ -8,7 +8,7 @@ import config
 from util.repeat import Repeat
 from util.scanschedule import ScanSchedule
 from counter_measures import CounterMeasures
-from util.datalists import QFileList, AllowList
+from util.datalists import QFileList, AllowList, ScanScheduleList
 
 
 class GUISetup(object):
@@ -36,13 +36,13 @@ class GUISetup(object):
         self.frameFont = None
 
         self.scan_file_paths = None
-        self.scan_schedule = []
         self.vaultList = None
 
         self.counter_measures = CounterMeasures(config.QUARANTINE_FOLDER)
         
         QFileList.load()
         AllowList.load()
+        ScanScheduleList.load()
         self._setupUi()
 
     def _setupUi(self):
@@ -304,6 +304,7 @@ class GUISetup(object):
         currentScheduleGroup.setLayout(currSchedGroupLayout)
 
         schedList = QtWidgets.QListWidget(self.schedScanFrame)
+        self._refreshSchedList(schedList)
         currSchedGroupLayout.addWidget(schedList)
 
         currSchedButtonLayout = QtWidgets.QVBoxLayout()
@@ -319,6 +320,12 @@ class GUISetup(object):
         deleteSchedButton.clicked.connect(lambda:self._removeSelectedSchedule(schedList))
         clearSchedButton.clicked.connect(lambda:self._clearSchedule(schedList))
 
+    def _refreshSchedList(self, schedList):
+        schedList.clear()
+        for i in range(ScanScheduleList.len()-1, -1, -1):
+            item = ScanScheduleList.get(i)
+            schedList.insertItem(0, QtWidgets.QListWidgetItem(str(item)))
+
     def _fetchScheduledDateAndTime(self, calendarInput, hourInput, minuteInput, ampmInput, schedList, choiceGroup):
         date = calendarInput.selectedDate()
         year = date.year()
@@ -331,13 +338,12 @@ class GUISetup(object):
         new_schedule = ScanSchedule(year, month, day, hour, minute, ampm, repeat)
         if (new_schedule.is_past()):
             self._displayError("Can't schedule a scan in the past!")
-        elif (new_schedule not in self.scan_schedule):
-            bisect.insort(self.scan_schedule, new_schedule)
-            index = self.scan_schedule.index(new_schedule)
-            schedList.insertItem(index, QtWidgets.QListWidgetItem(str(new_schedule)))
+        elif (not ScanScheduleList.find(new_schedule)):
+            ScanScheduleList.bisect_insort(new_schedule)
+            self._refreshSchedList(schedList)
     
     def _removeSelectedSchedule(self, schedList):
-        if (len(self.scan_schedule) > 0 and schedList.currentRow() >= 0):
+        if (ScanScheduleList.len() > 0 and schedList.currentRow() >= 0):
             confirm = QtWidgets.QMessageBox()
             confirm.setWindowIcon(self.schedScanIcon)
             confirm.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
@@ -345,25 +351,22 @@ class GUISetup(object):
             confirm.setWindowTitle("Delete Scheduled Scan")
             retval = confirm.exec()
             if (retval == QtWidgets.QMessageBox.Yes):
-                    index = schedList.currentRow()
-                    item = schedList.takeItem(index)
-                    schedList.removeItemWidget(item)
-                    del self.scan_schedule[index]
+                index = schedList.currentRow()
+                ScanScheduleList.remove(ScanScheduleList.get(index))
+                self._refreshSchedList(schedList)
     
-    def _updateSelectedSchedule(self, schedList):
-        if (len(self.scan_schedule) > 0 and schedList.currentRow() >= 0):
-            index = schedList.currentRow()
+    def _updateScheduleAtIndex(self, schedList, index):
+        if (ScanScheduleList.len() > 0):
             item = schedList.takeItem(index)
             schedList.removeItemWidget(item)
-            schedule = self.scan_schedule[index]
-            del self.scan_schedule[index]
-            if(schedule.next_schedule() and schedule not in self.scan_schedule):
-                bisect.insort(self.scan_schedule, schedule)
-                index = self.scan_schedule.index(schedule)
-                schedList.insertItem(index, QtWidgets.QListWidgetItem(str(schedule)))
+            schedule = ScanScheduleList.get(index)
+            ScanScheduleList.remove(ScanScheduleList.get(index))
+            if(schedule.next_schedule() and not ScanScheduleList.find(schedule)):
+                ScanScheduleList.bisect_insort(schedule)
+                self._refreshSchedList(schedList)
     
     def _clearSchedule(self, schedList):
-        if (len(self.scan_schedule) > 0):
+        if (ScanScheduleList.len() > 0):
             confirm = QtWidgets.QMessageBox()
             confirm.setWindowIcon(self.schedScanIcon)
             confirm.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
@@ -371,10 +374,9 @@ class GUISetup(object):
             confirm.setWindowTitle("Clear Schedule")
             retval = confirm.exec()
             if (retval == QtWidgets.QMessageBox.Yes):
-                for _ in range(len(self.scan_schedule)):
-                    item = schedList.takeItem(0)
-                    schedList.removeItemWidget(item)
-                    del self.scan_schedule[0]
+                for _ in range(ScanScheduleList.len()):
+                    ScanScheduleList.remove(ScanScheduleList.get(0))
+                self._refreshSchedList(schedList)
 
     def _setupViewVaultFrame(self):
         self.viewVaultFrame = QtWidgets.QFrame(self.centralwidget)
@@ -512,7 +514,7 @@ class GUISetup(object):
         configLabel.setText("CONFIG")
 
         allowListGroup = QtWidgets.QGroupBox("Allowed List", self.configFrame)
-        allowListGroup.setGeometry(QtCore.QRect(20, 60, 650, 250))
+        allowListGroup.setGeometry(QtCore.QRect(20, 70, 650, 250))
         allowListLayout = QtWidgets.QHBoxLayout()
         allowListGroup.setLayout(allowListLayout)
         signatureListGroup = QtWidgets.QGroupBox("Signature List", self.configFrame)
@@ -568,7 +570,7 @@ class GUISetup(object):
 
     def _updateAllowList(self, allowListWidget):
         allowListWidget.clear()
-        for i in range(AllowList.len()-1, -1, -1):
+        for i in range(AllowList.len()):
             path = AllowList.get(i)
             item = QtWidgets.QListWidgetItem(path)
             item.setToolTip(path)
