@@ -13,6 +13,7 @@ from datetime import datetime
 import bisect
 import enum
 from util.quarantinedfile import QuarantinedFile
+import os
 
 class Repeat(enum.IntEnum):
         ONCE = 1
@@ -514,7 +515,6 @@ class GUISetup(object):
         self.vaultList.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.vaultList.setCornerButtonEnabled(True)
         self.vaultList.horizontalHeader().setStretchLastSection(True)
-        self.vaultList
         listLayout.addWidget(self.vaultList)
         listLayout.addSpacerItem(QtWidgets.QSpacerItem(20, 10))
         buttonLayout = QtWidgets.QVBoxLayout()
@@ -541,8 +541,10 @@ class GUISetup(object):
 
             retval = confirm.exec()
             if (retval == QtWidgets.QMessageBox.Yes):
-                for item in items:
-                    index = self.vaultData.index(item)
+                
+                for i in range(0,len(items), 3):
+                    item = items[i]
+                    index = self.vaultList.row(item)
                     del self.vaultData[index]
                     self.vaultList.removeRow(index)
         
@@ -562,12 +564,15 @@ class GUISetup(object):
     
     def addQuarantinedFile(self, qfile):
         self.vaultData.insert(0, qfile)
-        timestampItem = QtWidgets.QTableWidgetItem(qfile.time)
+        timestampItem = QtWidgets.QTableWidgetItem(str(qfile.time))
         timestampItem.setFlags(timestampItem.flags() ^ QtCore.Qt.ItemIsEditable)
+        timestampItem.setToolTip(str(qfile.time))
         nameItem = QtWidgets.QTableWidgetItem(qfile.name)
         nameItem.setFlags(nameItem.flags() ^ QtCore.Qt.ItemIsEditable)
-        locationItem = QtWidgets.QTableWidgetItem(qfile.location)
+        nameItem.setToolTip(qfile.name)
+        locationItem = QtWidgets.QTableWidgetItem(qfile.dir)
         locationItem.setFlags(locationItem.flags() ^ QtCore.Qt.ItemIsEditable)
+        locationItem.setToolTip(qfile.dir)
         self.vaultList.insertRow(0)
         self.vaultList.setItem(0, 0, timestampItem)
         self.vaultList.setItem(0, 1, nameItem)
@@ -612,18 +617,35 @@ class GUI(GUISetup):
         super().__init__(main_window)
         
     def updateProgressBar(self, new_val):
+        '''
+            Updates the progress bar with some value for nice visuals
+        '''
         self.progressBar.setProperty("value", new_val)
     
     def getFilePaths(self):
+        '''
+            Returns the filepaths the user has selected to scan
+        '''
         return self.scan_file_paths
     
     def displayError(self, message):
+        '''
+            Generic error/warning display function
+        '''
         super()._displayError(message)
     
     def getSchedule(self):
+        '''
+            Returns scan schedule
+        '''
         return self.scan_schedule
     
     def addQuarantinedFile(self, qfile):
+        '''
+            Add file to vault
+
+            Idiom: self.addQuarantinedFile(QuarantinedFile(os.path.basename(file), file, datetime.now()))
+        '''
         super().addQuarantinedFile(qfile)
     
 
