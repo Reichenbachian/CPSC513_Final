@@ -7,6 +7,10 @@ STATIC_HASH_FILE = "../db/static_signatures.csv"
 CHUNK_HASH_FILE = "../db/chunk_signatures.csv"
 REGEX_FILE = "../db/regex_signatures.csv"
 
+##Data
+DATA_FOLDER = "../data"
+QFILE_LIST_FILE = "../data/qfiles"
+
 ## Options
 QUARANTINE_FOLDER = '/tmp/quarantine'
 CHUNK_SIZE = 2048
@@ -33,3 +37,4 @@ TEST_VIRUS_DIRECTORY = os.path.abspath(os.path.join(os.path.dirname(__file__), T
 
 ## Create folders
 os.makedirs(QUARANTINE_FOLDER, exist_ok=True)
+os.makedirs(DATA_FOLDER, exist_ok=True)
