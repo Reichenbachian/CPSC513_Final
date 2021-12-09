@@ -594,11 +594,10 @@ class GUISetup(object):
 
 
     def _displayError(self, message):
-        error_dialog = QtWidgets.QErrorMessage()
-        error_dialog.showMessage(str(message))
-        error_dialog.setWindowIcon(self.errorIcon)
-        error_dialog.setWindowTitle("Error")
-        error_dialog.exec()
+        QtWidgets.QMessageBox.critical(self.mainWindow, "Error", str(message))
+    
+    def _displayMessage(self, message):
+        QtWidgets.QMessageBox.information(self.mainWindow, "Notice", str(message))
     
     def start_scan(self):
         raise NotImplementedError
