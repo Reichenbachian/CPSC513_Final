@@ -24,6 +24,16 @@ class AbstractSerializableList(object):
         '''
         if (item in cls.list):
             cls.list.remove(item)
+            
+    @classmethod
+    def find(cls, item):
+        '''
+            Return True if item is in list, else returns False
+        '''
+        if(item in cls.list):
+            return True
+        else:
+            return False
 
     @classmethod
     def save(cls):
