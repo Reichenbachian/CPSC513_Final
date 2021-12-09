@@ -1,18 +1,14 @@
 import click
 import config
-import os
-from pathlib import Path
-from scanner import SignatureScanner, RegexScanner
+from scanner import SCANNERS
+from counter_measures import CounterMeasures
 
 def run_folder_scan(folder):
-	scanner = SignatureScanner(config.SIGNATURE_FILE)
-	for root, dirs, files in os.walk(folder):
-		for file in files:
-			path = os.path.join(root, file)
-			if Path(path).is_file():
-				is_virus, virus_info = scanner.scan_file(path)
-				if is_virus:
-					print(f"Found a virus at {path}")
+	counter_measures = CounterMeasures(config.QUARANTINE_FOLDER)
+	for scanner in SCANNERS:
+		for virus, virus_info in scanner.scan_folder(folder):
+			counter_measures.address_virus(virus, virus_info)
+
 
 @click.command()
 @click.option('--scan', 'scan_folder', help='Scan a specific folder.')
