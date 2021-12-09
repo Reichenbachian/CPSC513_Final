@@ -1,5 +1,11 @@
 # Hodalex AntiVirus
 
+
+## Testing Command
+```
+python scripts/create_virus_folder.py -t test_regex -t test_static_hash -t test_chunk_hash; python src/hodalex_antivirus.py --scan /tmp/virus/; cat /tmp/virus_scanner.log
+```
+
 ## Questions
  - Does nmtui count as a GUI interface?
  - Is there a specific place to get a signature list?
