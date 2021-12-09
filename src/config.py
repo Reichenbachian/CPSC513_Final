@@ -10,6 +10,7 @@ REGEX_FILE = "../db/regex_signatures.csv"
 ##Data
 DATA_FOLDER = "../data"
 QFILE_LIST_FILE = "../data/qfiles"
+ALLOW_LIST_FILE = "../data/allowlist"
 
 ## Options
 QUARANTINE_FOLDER = '/tmp/quarantine'
@@ -34,6 +35,10 @@ CHUNK_HASH_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), CHUNK_
 REGEX_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), REGEX_FILE))
 QUARANTINE_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), QUARANTINE_FOLDER))
 TEST_VIRUS_DIRECTORY = os.path.abspath(os.path.join(os.path.dirname(__file__), TEST_VIRUS_DIRECTORY))
+DATA_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), DATA_FOLDER))
+QFILE_LIST_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), QFILE_LIST_FILE))
+ALLOW_LIST_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), ALLOW_LIST_FILE))
+
 
 ## Create folders
 os.makedirs(QUARANTINE_FOLDER, exist_ok=True)
