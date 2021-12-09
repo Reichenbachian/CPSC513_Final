@@ -1,7 +1,4 @@
-import config
-
 from datetime import datetime
-from util.serlist import AbstractSerializableList
 
 class QuarantinedFile(object):
     '''
@@ -37,9 +34,3 @@ class QuarantinedFile(object):
             return True
         else:
             return False
-
-class QFileList(AbstractSerializableList):
-    '''
-        A serializable list of quantine file metadata
-    '''
-    file_path = config.QFILE_LIST_FILE
