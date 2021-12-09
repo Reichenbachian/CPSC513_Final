@@ -4,5 +4,11 @@ example_folder/
 ## Ignore python cache files
 __pycache__
 
-##Ignoring virtual environment files
+## Ignoring virtual environment files
 Pipfile*
+
+## User specific data
+data/
+
+## Ignore local tests folder
+local_tst/
