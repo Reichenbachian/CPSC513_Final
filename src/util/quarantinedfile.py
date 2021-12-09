@@ -78,3 +78,7 @@ class QFileList(object):
     @classmethod
     def get(cls, index):
         return cls.qfile_list[index]
+    
+    @classmethod
+    def len(cls):
+        return len(cls.qfile_list)
