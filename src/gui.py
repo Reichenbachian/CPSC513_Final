@@ -45,8 +45,11 @@ class GUI(GUISetup):
         '''
             This function connects the GUI with the backend
 
-            Potentially useful function:
-                getFilePaths: returns
+            Potentially useful functions:
+                getFilePaths: returns a list of strings, each a file path
+                displayError: display an error dialog with some message
+                addQuarantinedFile: adds to a file to the visual "vault" - allows a user to see files in the vault
+                updateProgressBar: nice UI for user to see progress of scan
         '''
         pass
 
