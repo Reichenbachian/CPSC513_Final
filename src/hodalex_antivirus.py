@@ -8,7 +8,7 @@ from gui import GUI
 from virus_info import VirusSeverity
 from datetime import datetime
 from util.quarantinedfile import QuarantinedFile
-from util.datalists import AllowList, QFileList
+from util.datalists import AllowList, QFileList, ScanScheduleList
 
 
 def run_folder_scan(folder):
@@ -30,6 +30,7 @@ def print_help():
 def serialize_lists():
 	QFileList.save()
 	AllowList.save()
+	ScanScheduleList.save()
 
 @click.command()
 @click.option('-s', '--scan', 'scan_folder', type=str, help='Scan a specific folder.')
