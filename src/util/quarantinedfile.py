@@ -47,11 +47,11 @@ class QFileList(object):
     loaded = False
 
     @classmethod
-    def append(cls, qFile):
+    def insert(cls, i, qFile):
         '''
             qFile:  QuarantinedFile object
         '''
-        cls.qfile_list.append(qFile)
+        cls.qfile_list.insert(i, qFile)
         
     @classmethod
     def remove(cls, qFile):
@@ -75,3 +75,6 @@ class QFileList(object):
                     cls.loaded = True
             except FileNotFoundError:
                 pass 
+    @classmethod
+    def get(cls, index):
+        return cls.qfile_list[index]
