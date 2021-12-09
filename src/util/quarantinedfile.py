@@ -10,13 +10,14 @@ class QuarantinedFile(object):
             time [datetime]: the time at which file was quarantined
     
     '''
-    def __init__(self, name, dir, time):
+    def __init__(self, name, path, perm, time):
         self.name = name
-        self.dir = dir
+        self.path = path
         self.time = time    #daytime object
+        self.old_perm = perm
     
     def __str__(self):
-        return f"{self.dir} | {self.time.hour():02}:{self.time.minute():02}:{self.time.second():02}"
+        return f"{self.path} | {self.time.hour():02}:{self.time.minute():02}:{self.time.second():02}"
     
     def __repr__(self):
         self.__str__()
