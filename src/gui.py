@@ -1,5 +1,5 @@
 import os
-from util.quarantinedfile import QuarantinedFile
+from util.quarantinedfile import QuarantinedFile, QFileList
 from util.scanschedule import ScanSchedule
 from scanner import SCANNERS
 
@@ -33,17 +33,12 @@ class GUI(GUISetup):
             Returns scan schedule
         '''
         return self.scan_schedule
-    
-    def addQuarantinedFile(self, file):
-        '''
-            Add file to vault
 
-            Idiom: self.addQuarantinedFile(QuarantinedFile(os.path.basename(file), file, oct(os.stat(file).st_mode), os.datetime.now()))
+    def updateVault(self):
         '''
-        st = os.stat(file)
-        perm = oct(st.st_mode)
-        qfile = QuarantinedFile(os.path.basename(file), file, perm, os.datetime.now())
-        super()._addQuarantinedFile(qfile)
+            Updates the vault entries based on the current list of QuarantinedFiles
+        '''
+        super()._updateVault()
     
     def start_scan(self):
         '''
@@ -52,7 +47,6 @@ class GUI(GUISetup):
             Potentially useful functions:
                 getFilePaths: returns a list of strings, each a file path
                 displayError: display an error dialog with some message
-                addQuarantinedFile: adds to a file to the visual "vault" - allows a user to see files in the vault
                 updateProgressBar: nice UI for user to see progress of scan
         '''
         pass
