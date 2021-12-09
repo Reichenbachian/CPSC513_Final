@@ -12,3 +12,9 @@ class AllowList(AbstractSerializableList):
         A serializable list of file paths that the antivirus will ignore
     '''
     file_path = config.ALLOW_LIST_FILE
+
+class ScanScheduleList(AbstractSerializableList):
+    '''
+        A serializable list of scan schedules
+    '''
+    file_path = config.SCAN_SCHED_FILE

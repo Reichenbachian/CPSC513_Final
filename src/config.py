@@ -11,6 +11,7 @@ REGEX_FILE = "../db/regex_signatures.csv"
 DATA_FOLDER = "../data"
 QFILE_LIST_FILE = "../data/qfiles"
 ALLOW_LIST_FILE = "../data/allowlist"
+SCAN_SCHED_FILE = "../data/scansched"
 
 ## Options
 QUARANTINE_FOLDER = '/tmp/quarantine'
@@ -38,7 +39,7 @@ TEST_VIRUS_DIRECTORY = os.path.abspath(os.path.join(os.path.dirname(__file__), T
 DATA_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), DATA_FOLDER))
 QFILE_LIST_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), QFILE_LIST_FILE))
 ALLOW_LIST_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), ALLOW_LIST_FILE))
-
+SCAN_SCHED_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), SCAN_SCHED_FILE))
 
 ## Create folders
 os.makedirs(QUARANTINE_FOLDER, exist_ok=True)
