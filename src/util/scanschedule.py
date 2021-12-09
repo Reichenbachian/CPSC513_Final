@@ -1,4 +1,5 @@
 from util.repeat import Repeat
+from datetime import datetime
 
 class ScanSchedule(object):
     def __init__(self, year, month, day, hour, minute, ampm, repeat):
@@ -33,6 +34,14 @@ class ScanSchedule(object):
             if (self.day == 31 and (self.month == 9 or self.month == 4 or self.month == 6 or self.month == 11)):
                 self.day = 30
         return True
+    
+    def is_past(self):
+        now = datetime.now()
+        now_sced = ScanSchedule(now.year, now.month, now.day, int(now.strftime("%I")), int(now.strftime("%M")), now.strftime("%p"), Repeat.ONCE)
+        if (now_sced < self):
+            return False
+        else:
+            return True
     
     def _incr_day(self):
         self.day += 1

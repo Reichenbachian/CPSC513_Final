@@ -325,7 +325,9 @@ class GUISetup(object):
         ampm = ampmInput.currentText()
         repeat = choiceGroup.checkedId()
         new_schedule = ScanSchedule(year, month, day, hour, minute, ampm, repeat)
-        if (new_schedule not in self.scan_schedule):
+        if (new_schedule.is_past()):
+            self._displayError("Can't schedule a scan in the past!")
+        elif (new_schedule not in self.scan_schedule):
             bisect.insort(self.scan_schedule, new_schedule)
             index = self.scan_schedule.index(new_schedule)
             schedList.insertItem(index, QtWidgets.QListWidgetItem(str(new_schedule)))
