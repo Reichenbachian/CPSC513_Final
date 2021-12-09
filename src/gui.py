@@ -1,6 +1,7 @@
 import os
 import config
 import logging
+import numpy as np
 from util.quarantinedfile import QuarantinedFile
 from util.datalists import QFileList
 from scanner import SCANNERS
@@ -70,7 +71,7 @@ class GUI(GUISetup):
             for scanner in SCANNERS:
                 for virus, virus_info in scanner.scan_folder(folder):
                     if (not AllowList.find(virus)):
-                        if (virus_info == VirusSeverity.QUARANTINE):
+                        if np.any(virus_info == VirusSeverity.QUARANTINE):
                             perm = oct(os.stat(virus).st_mode)
                             qfile = QuarantinedFile(os.path.basename(virus), virus, perm, datetime.now())
                             QFileList.insert(0, qfile)
