@@ -14,7 +14,7 @@ import config
 def create_chunk_of_length(length):
 	s = ""
 	for i in range(length):
-		s += chr(random.randint(0, 0x110000))
+		s += chr(random.randint(0, 0x110000 - 1))
 	return s
 
 def create_random_file(fp):
