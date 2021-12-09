@@ -12,6 +12,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from datetime import datetime
 import bisect
 import enum
+from util.quarantinedfile import QuarantinedFile
 
 class Repeat(enum.IntEnum):
         ONCE = 1
@@ -146,6 +147,8 @@ class GUISetup(object):
 
         self.scan_file_paths = None
         self.scan_schedule = []
+        self.vaultData = []
+        self.vaultList = None
 
         self._setupUi()
 
@@ -461,8 +464,6 @@ class GUISetup(object):
                 bisect.insort(self.scan_schedule, schedule)
                 index = self.scan_schedule.index(schedule)
                 schedList.insertItem(index, QtWidgets.QListWidgetItem(str(schedule)))
-
-
     
     def _clearSchedule(self, schedList):
         if (len(self.scan_schedule) > 0):
@@ -499,6 +500,81 @@ class GUISetup(object):
         viewVaultLabel.setScaledContents(False)
         viewVaultLabel.setObjectName("viewVaultLabel")
         viewVaultLabel.setText("VAULT")
+
+        mainLayout = QtWidgets.QVBoxLayout(self.viewVaultFrame)
+        mainLayout.addSpacerItem(QtWidgets.QSpacerItem(10, 55))
+        listLayout = QtWidgets.QHBoxLayout()
+        mainLayout.addLayout(listLayout)
+        mainLayout.addSpacerItem(QtWidgets.QSpacerItem(10, 20))
+        self.vaultList = QtWidgets.QTableWidget(self.viewVaultFrame)
+        self.vaultList.setRowCount(0)
+        self.vaultList.setColumnCount(3)
+        self.vaultList.setHorizontalHeaderLabels(["Timestamp", "Name", "Location"])
+        self.vaultList.setShowGrid(False)
+        self.vaultList.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.vaultList.setCornerButtonEnabled(True)
+        self.vaultList.horizontalHeader().setStretchLastSection(True)
+        self.vaultList
+        listLayout.addWidget(self.vaultList)
+        listLayout.addSpacerItem(QtWidgets.QSpacerItem(20, 10))
+        buttonLayout = QtWidgets.QVBoxLayout()
+        listLayout.addLayout(buttonLayout)
+        listLayout.addSpacerItem(QtWidgets.QSpacerItem(50, 10))
+        restoreButton = QtWidgets.QPushButton("Restore", self.viewVaultFrame)
+        restoreButton.clicked.connect(lambda:self._restoreQuarantinedFile())
+        deleteButton = QtWidgets.QPushButton("Delete", self.viewVaultFrame)
+        deleteButton.clicked.connect(lambda:self._deleteQuarantinedFile())
+        buttonLayout.addSpacerItem(QtWidgets.QSpacerItem(10, 60))
+        buttonLayout.addWidget(restoreButton)
+        buttonLayout.addWidget(deleteButton)
+        buttonLayout.addSpacerItem(QtWidgets.QSpacerItem(10, 350))
+    
+    def _deleteQuarantinedFile(self, confirm = None):
+        items = self.vaultList.selectedItems()
+        if (len(items) > 0):
+            if (confirm == None):
+                confirm = QtWidgets.QMessageBox()
+                confirm.setWindowIcon(self.viewVaultIcon)
+                confirm.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+                confirm.setText("Are you sure you want to delete selected quanrantined file(s)?")
+                confirm.setWindowTitle("Delete Quaratined File")
+
+            retval = confirm.exec()
+            if (retval == QtWidgets.QMessageBox.Yes):
+                for item in items:
+                    index = self.vaultData.index(item)
+                    del self.vaultData[index]
+                    self.vaultList.removeRow(index)
+        
+        #TODO: Need to do actual delection from disk
+    
+    def _restoreQuarantinedFile(self):
+        items = self.vaultList.selectedItems()
+        if (len(items) > 0):
+            confirm = QtWidgets.QMessageBox()
+            confirm.setWindowIcon(self.viewVaultIcon)
+            confirm.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            confirm.setText("Are you sure you want to restore selected quanrantined file(s)?")
+            confirm.setWindowTitle("Restore Quaratined File")
+            self._deleteQuarantinedFile(confirm)
+
+        #TODO: Need to do actual restoration to disk
+    
+    def addQuarantinedFile(self, qfile):
+        self.vaultData.insert(0, qfile)
+        timestampItem = QtWidgets.QTableWidgetItem(qfile.time)
+        timestampItem.setFlags(timestampItem.flags() ^ QtCore.Qt.ItemIsEditable)
+        nameItem = QtWidgets.QTableWidgetItem(qfile.name)
+        nameItem.setFlags(nameItem.flags() ^ QtCore.Qt.ItemIsEditable)
+        locationItem = QtWidgets.QTableWidgetItem(qfile.location)
+        locationItem.setFlags(locationItem.flags() ^ QtCore.Qt.ItemIsEditable)
+        self.vaultList.insertRow(0)
+        self.vaultList.setItem(0, 0, timestampItem)
+        self.vaultList.setItem(0, 1, nameItem)
+        self.vaultList.setItem(0, 2, locationItem)
+
+        #TODO: Need to do actual adding to vault
+            
     
     def _setupConfigFrame(self):
         self.configFrame = QtWidgets.QFrame(self.centralwidget)
@@ -546,5 +622,8 @@ class GUI(GUISetup):
     
     def getSchedule(self):
         return self.scan_schedule
+    
+    def addQuarantinedFile(self, qfile):
+        super().addQuarantinedFile(qfile)
     
 
