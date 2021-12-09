@@ -1,3 +1,4 @@
+import os
 import click
 import config
 from scanner import SCANNERS
@@ -5,14 +6,18 @@ from counter_measures import CounterMeasures
 from PyQt5.QtWidgets import QApplication, QFrame, QMainWindow
 from gui import GUI
 from virus_info import VirusSeverity
+from datetime import datetime
+from util.quarantinedfile import QuarantinedFile, QFileList
 
 
-def run_folder_scan(folder, gui = None):
+def run_folder_scan(folder):
 	counter_measures = CounterMeasures(config.QUARANTINE_FOLDER)
 	for scanner in SCANNERS:
 		for virus, virus_info in scanner.scan_folder(folder):
-			if (not gui is None and virus_info == VirusSeverity.QUARANTINE):
-				gui.addQuarantinedFile(virus)
+			if (virus_info == VirusSeverity.QUARANTINE):
+				perm = oct(os.stat(virus).st_mode)
+				qfile = QuarantinedFile(os.path.basename(virus), virus, perm, datetime.now())
+				QFileList.insert(0, qfile)
 			counter_measures.address_virus(virus, virus_info)
 
 def print_help():
