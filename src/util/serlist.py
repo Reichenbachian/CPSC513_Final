@@ -1,3 +1,4 @@
+import bisect
 import pickle
 
 class AbstractSerializableList(object):
@@ -24,7 +25,7 @@ class AbstractSerializableList(object):
         '''
         if (item in cls.list):
             cls.list.remove(item)
-            
+
     @classmethod
     def find(cls, item):
         '''
@@ -56,3 +57,11 @@ class AbstractSerializableList(object):
     @classmethod
     def len(cls):
         return len(cls.list)
+
+    @classmethod
+    def bisect_insort(cls, item):
+        bisect.insort(cls.list, item)
+    
+    @classmethod
+    def index(cls, item):
+        return cls.list.index(item)
