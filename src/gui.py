@@ -529,18 +529,14 @@ class GUI(GUISetup):
         super().__init__(main_window)
         
     def updateProgressBar(self, new_val):
-        print("A")
         self.progressBar.setProperty("value", new_val)
     
     def getFilePaths(self):
-        print("B")
         return self.scan_file_paths
     
     def displayError(self, message):
-        print("C")
         super()._displayError(message)
     
     def getSchedule(self):
-        print("D")
         return self.scan_schedule
 
