@@ -77,10 +77,11 @@ class GUI(GUISetup):
                             QFileList.insert(0, qfile)
                         counter_measures.address_virus(virus, virus_info)
                         detected += 1
+                self.updateProgressBar(progress_markers[cpt])
                 cpt = min(total_cpts-1, cpt+1)
-                self.updateProgressBar(progress_markers[cpt]) 
+
         if (detected > 0):
-            self.displayMessage(f"Scanning complete. Detected {detected} malware files!")
+            self.displayMessage(f"Scanning complete. Detected {detected} malware files! See {config.LOG_DIRECTORY} for details.")
         else:
             self.displayMessage("Scanning complete! No malware detected!")
         self.updateProgressBar(0)

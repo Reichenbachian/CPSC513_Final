@@ -85,22 +85,22 @@ class GUISetup(object):
 
     def _importIcons(self):
         self.hodalexIcon = QtGui.QIcon()
-        self.hodalexIcon.addPixmap(QtGui.QPixmap(".\\ui\\resources/antivirus.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.hodalexIcon.addPixmap(QtGui.QPixmap(os.path.join(config.UI_RESOURCES_FOLDER, "antivirus.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         
         self.scanNowIcon = QtGui.QIcon()
-        self.scanNowIcon.addPixmap(QtGui.QPixmap(".\\ui\\resources/search.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.scanNowIcon.addPixmap(QtGui.QPixmap(os.path.join(config.UI_RESOURCES_FOLDER, "search.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         
         self.schedScanIcon = QtGui.QIcon()
-        self.schedScanIcon.addPixmap(QtGui.QPixmap(".\\ui\\resources/schedule.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.schedScanIcon.addPixmap(QtGui.QPixmap(os.path.join(config.UI_RESOURCES_FOLDER, "schedule.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
         self.viewVaultIcon = QtGui.QIcon()
-        self.viewVaultIcon.addPixmap(QtGui.QPixmap(".\\ui\\resources/config.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.viewVaultIcon.addPixmap(QtGui.QPixmap(os.path.join(config.UI_RESOURCES_FOLDER, "config.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
         self.configIcon = QtGui.QIcon()
-        self.configIcon.addPixmap(QtGui.QPixmap(".\\ui\\resources/lock.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.configIcon.addPixmap(QtGui.QPixmap(os.path.join(config.UI_RESOURCES_FOLDER, "lock.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
         self.errorIcon = QtGui.QIcon()
-        self.errorIcon.addPixmap(QtGui.QPixmap(".\\ui\\resources/error.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.errorIcon.addPixmap(QtGui.QPixmap(os.path.join(config.UI_RESOURCES_FOLDER, "error.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         
     def _setupFonts(self):
         self.frameFont = QtGui.QFont()
@@ -221,6 +221,8 @@ class GUISetup(object):
         if(selectFileDialog.exec()):
             self.scan_file_paths = selectFileDialog.selectedFiles()
         self.start_scan()
+        self._updateVault()
+        self.scan_file_paths = None
 
 
     def _setupSchedScanFrame(self):
@@ -466,7 +468,9 @@ class GUISetup(object):
                     item = items[i]
                     index = self.vaultList.row(item)
                     qfile = QFileList.get(index)
-                    os.remove(os.path.join(config.QUARANTINE_FOLDER, qfile.name))
+                    file = os.path.join(config.QUARANTINE_FOLDER, qfile.name)
+                    os.chmod(file, 0o222)
+                    os.remove(file)
                     QFileList.remove(qfile)
                     self.vaultList.removeRow(index)
                 

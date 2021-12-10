@@ -39,6 +39,7 @@ def serialize_lists():
 def main(scan_folder, gui):
 	if scan_folder is not None:
 		run_folder_scan(scan_folder)
+		serialize_lists()
 	elif gui:
 		app = QApplication([])
 		app.aboutToQuit.connect(serialize_lists)

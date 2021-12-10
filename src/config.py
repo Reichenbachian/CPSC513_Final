@@ -7,6 +7,8 @@ STATIC_HASH_FILE = "../db/static_signatures.csv"
 CHUNK_HASH_FILE = "../db/chunk_signatures.csv"
 REGEX_FILE = "../db/regex_signatures.csv"
 
+##UI Resources Folder
+UI_RESOURCES_FOLDER = "./ui/resources"
 ##Data
 DATA_FOLDER = "../data"
 QFILE_LIST_FILE = "../data/qfiles"
@@ -40,6 +42,7 @@ DATA_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), DATA_FOLDE
 QFILE_LIST_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), QFILE_LIST_FILE))
 ALLOW_LIST_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), ALLOW_LIST_FILE))
 SCAN_SCHED_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), SCAN_SCHED_FILE))
+UI_RESOURCES_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), UI_RESOURCES_FOLDER))
 
 ## Create folders
 os.makedirs(QUARANTINE_FOLDER, exist_ok=True)

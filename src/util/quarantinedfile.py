@@ -15,7 +15,7 @@ class QuarantinedFile(object):
         self.name = name
         self.path = path
         self.time = time    #daytime object
-        self.old_perm = perm
+        self.old_perm = int(perm, 8)
     
     def __str__(self):
         return f"{self.path} | {self.time.hour:02}:{self.time.minute:02}:{self.time.second:02}"
