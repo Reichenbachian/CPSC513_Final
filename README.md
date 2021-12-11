@@ -1,8 +1,14 @@
 # Hodalex AntiVirus
 
 ## Testing Command
+
+For CLI
 ```
 python scripts/create_virus_folder.py -t test_regex -t test_static_hash -t test_chunk_hash; python src/hodalex_antivirus.py --scan /tmp/virus/; cat /tmp/virus_scanner.log
+```
+For GUI
+```
+python scripts/create_virus_folder.py -t test_regex -t test_static_hash -t test_chunk_hash; python src/hodalex_antivirus.py -g
 ```
 
 ## Requirements
