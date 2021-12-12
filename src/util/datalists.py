@@ -1,4 +1,5 @@
 import config
+from datetime import datetime
 from util.serlist import AbstractSerializableList
 
 class QFileList(AbstractSerializableList):
@@ -7,6 +8,7 @@ class QFileList(AbstractSerializableList):
     '''
     list = []
     file_path = config.QFILE_LIST_FILE
+    last_mod = datetime.now()
 
 class AllowList(AbstractSerializableList):
     '''
@@ -14,6 +16,7 @@ class AllowList(AbstractSerializableList):
     '''
     list = []
     file_path = config.ALLOW_LIST_FILE
+    last_mod = datetime.now()
 
 class ScanScheduleList(AbstractSerializableList):
     '''
@@ -21,3 +24,4 @@ class ScanScheduleList(AbstractSerializableList):
     '''
     list = []
     file_path = config.SCAN_SCHED_FILE
+    last_mod = datetime.now()

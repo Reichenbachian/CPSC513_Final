@@ -1,4 +1,5 @@
 import bisect
+from datetime import datetime
 import pickle
 
 class AbstractSerializableList(object):
@@ -10,6 +11,7 @@ class AbstractSerializableList(object):
     list = []
     loaded = False
     file_path = None
+    last_mod = datetime.now()
 
     @classmethod
     def insert(cls, i, item):
@@ -17,7 +19,8 @@ class AbstractSerializableList(object):
             qFile:  QuarantinedFile object
         '''
         cls.list.insert(i, item)
-        
+        cls.last_mod = datetime.now()
+
     @classmethod
     def remove(cls, item):
         '''
@@ -25,6 +28,7 @@ class AbstractSerializableList(object):
         '''
         if (item in cls.list):
             cls.list.remove(item)
+            cls.last_mod = datetime.now()
 
     @classmethod
     def find(cls, item):
@@ -61,7 +65,15 @@ class AbstractSerializableList(object):
     @classmethod
     def bisect_insort(cls, item):
         bisect.insort(cls.list, item)
+        cls.last_mod = datetime.now()
     
     @classmethod
     def index(cls, item):
         return cls.list.index(item)
+    
+    @classmethod
+    def modified(cls, last_checked):
+        if (last_checked == None or last_checked < cls.last_mod):
+            return True
+        else:
+            return False
