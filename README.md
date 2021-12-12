@@ -50,7 +50,7 @@ python scripts/create_virus_folder.py -t test_regex -t test_static_hash -t test_
  - Dec 5, Robust testing
  - Dec 10, Be done
 
-## Improvements
+## Improvements/Next Steps
  - Thread safe global data structures for scheduling
  - Make GUI non-blocking while scanning
  - Allow configuration of signature list
