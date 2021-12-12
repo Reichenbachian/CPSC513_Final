@@ -1,5 +1,4 @@
 import os
-
 class QuarantinedFile(object):
     '''
         Object for quarantined file management
@@ -13,7 +12,7 @@ class QuarantinedFile(object):
     '''
     def __init__(self, name, path, perm, time):
         self.name = name
-        self.path = path
+        self.path = path.replace('/', os.sep).replace('\\', os.sep)
         self.time = time    #daytime object
         self.old_perm = int(perm, 8)
     
@@ -24,7 +23,7 @@ class QuarantinedFile(object):
         return self.__str__()
     
     def __eq__(self, other):
-        if (os.path.samefile(self.path,other.path)):
+        if (self.path == other.path):
             return True
         else:
             return False

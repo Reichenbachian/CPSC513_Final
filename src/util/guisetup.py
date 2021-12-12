@@ -560,6 +560,7 @@ class GUISetup(object):
         if(selectFileDialog.exec()):
             file_paths = selectFileDialog.selectedFiles()
             for path in file_paths:
+                path = path.replace('/', os.sep).replace('\\', os.sep)
                 if (not AllowList.find(path)):
                     AllowList.insert(0, path)
         self._updateAllowList()

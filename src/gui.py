@@ -1,6 +1,5 @@
 import os
 import config
-import logging
 import numpy as np
 from util.quarantinedfile import QuarantinedFile
 from util.datalists import QFileList
