@@ -68,6 +68,9 @@ class GUI(GUISetup):
         cpt = 0
         counter_measures = CounterMeasures(config.QUARANTINE_FOLDER)
         for folder in folders:
+            if os.path.samefile(folder,config.QUARANTINE_FOLDER):
+                self.displayMessage("No need to scan quarantine folder!")
+                continue
             for scanner in SCANNERS:
                 for virus, virus_info in scanner.scan_folder(folder):
                     if (not AllowList.find(virus)):
