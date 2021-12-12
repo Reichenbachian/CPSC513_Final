@@ -57,3 +57,4 @@ python scripts/create_virus_folder.py -t test_regex -t test_static_hash -t test_
  - Syscall hooking for execution before every file execution
  - Installer
  - Start daemon scanning processes without GUI/don't quit when GUI quits but don't use too many system resources
+ - Enclose quarantine files in metadata so that vault info can be directly recovered from quarantine folder
