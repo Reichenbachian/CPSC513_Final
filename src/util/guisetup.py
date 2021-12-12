@@ -37,6 +37,13 @@ class GUISetup(object):
 
         self.scan_file_paths = None
         self.vaultList = None
+        self.schedListWidget = None
+        self.allowListWidget = None
+        self.signatureListWidget = None
+
+        self.vaultList_last_checked = None
+        self.schedList_last_checked = None
+        self.allowList_last_checked = None
 
         self.counter_measures = CounterMeasures(config.QUARANTINE_FOLDER)
         
@@ -155,22 +162,10 @@ class GUISetup(object):
         self.actionView_Vault.setText("View Vault")
         self.actionView_Vault.setToolTip("View Vault")
 
-        self.actionView_Vault.triggered.connect(self.scanFrame.hide)
-        self.actionScan.triggered.connect(self.scanFrame.show)
-        self.actionSchedule_Scan.triggered.connect(self.scanFrame.hide)
-        self.actionConfig.triggered.connect(self.scanFrame.hide)
-        self.actionView_Vault.triggered.connect(self.configFrame.hide)
-        self.actionConfig.triggered.connect(self.configFrame.show)
-        self.actionScan.triggered.connect(self.configFrame.hide)
-        self.actionSchedule_Scan.triggered.connect(self.configFrame.hide)
-        self.actionConfig.triggered.connect(self.schedScanFrame.hide)
-        self.actionSchedule_Scan.triggered.connect(self.schedScanFrame.show)
-        self.actionScan.triggered.connect(self.schedScanFrame.hide)
-        self.actionView_Vault.triggered.connect(self.schedScanFrame.hide)
-        self.actionConfig.triggered.connect(self.viewVaultFrame.hide)
-        self.actionScan.triggered.connect(self.viewVaultFrame.hide)
-        self.actionSchedule_Scan.triggered.connect(self.viewVaultFrame.hide)
-        self.actionView_Vault.triggered.connect(self.viewVaultFrame.show)
+        [self.actionScan.triggered.connect(f) for f in [self.scanFrame.show, self.configFrame.hide, self.schedScanFrame.hide, self.viewVaultFrame.hide]]
+        [self.actionSchedule_Scan.triggered.connect(f) for f in [self.scanFrame.hide, self.configFrame.hide, self.schedScanFrame.show, self.viewVaultFrame.hide, self._updateSchedList]]
+        [self.actionView_Vault.triggered.connect(f) for f in [self.scanFrame.hide, self.configFrame.hide, self.schedScanFrame.hide, self.viewVaultFrame.show, self._updateVault]]
+        [self.actionConfig.triggered.connect(f) for f in [self.scanFrame.hide, self.configFrame.show, self.schedScanFrame.hide, self.viewVaultFrame.hide, self._updateAllowList, self._updateSignatureList]]
         QtCore.QMetaObject.connectSlotsByName(self.mainWindow)
     
     def _setupCentralWidget(self):
@@ -305,9 +300,9 @@ class GUISetup(object):
         currSchedGroupLayout = QtWidgets.QHBoxLayout()
         currentScheduleGroup.setLayout(currSchedGroupLayout)
 
-        schedList = QtWidgets.QListWidget(self.schedScanFrame)
-        self._refreshSchedList(schedList)
-        currSchedGroupLayout.addWidget(schedList)
+        self.schedListWidget = QtWidgets.QListWidget(self.schedScanFrame)
+        self._updateSchedList()
+        currSchedGroupLayout.addWidget(self.schedListWidget)
 
         currSchedButtonLayout = QtWidgets.QVBoxLayout()
         currSchedGroupLayout.addLayout(currSchedButtonLayout)
@@ -318,17 +313,19 @@ class GUISetup(object):
         currSchedButtonLayout.addWidget(clearSchedButton)
         currSchedButtonLayout.addSpacerItem(QtWidgets.QSpacerItem(50, 50))
 
-        scheduleButton.clicked.connect(lambda:self._fetchScheduledDateAndTime(calendarInput, hourInput, minuteInput, ampmInput, schedList, choiceGroup))
-        deleteSchedButton.clicked.connect(lambda:self._removeSelectedSchedule(schedList))
-        clearSchedButton.clicked.connect(lambda:self._clearSchedule(schedList))
+        scheduleButton.clicked.connect(lambda:self._fetchScheduledDateAndTime(calendarInput, hourInput, minuteInput, ampmInput, choiceGroup))
+        deleteSchedButton.clicked.connect(lambda:self._removeSelectedSchedule())
+        clearSchedButton.clicked.connect(lambda:self._clearSchedule())
 
-    def _refreshSchedList(self, schedList):
-        schedList.clear()
-        for i in range(ScanScheduleList.len()-1, -1, -1):
-            item = ScanScheduleList.get(i)
-            schedList.insertItem(0, QtWidgets.QListWidgetItem(str(item)))
+    def _updateSchedList(self):
+        if (ScanScheduleList.modified(self.schedList_last_checked)):
+            self.schedListWidget.clear()
+            for i in range(ScanScheduleList.len()-1, -1, -1):
+                item = ScanScheduleList.get(i)
+                self.schedListWidget.insertItem(0, QtWidgets.QListWidgetItem(str(item)))
+        self.schedList_last_checked = datetime.now()
 
-    def _fetchScheduledDateAndTime(self, calendarInput, hourInput, minuteInput, ampmInput, schedList, choiceGroup):
+    def _fetchScheduledDateAndTime(self, calendarInput, hourInput, minuteInput, ampmInput, choiceGroup):
         date = calendarInput.selectedDate()
         year = date.year()
         month = date.month()
@@ -342,10 +339,10 @@ class GUISetup(object):
             self._displayError("Can't schedule a scan in the past!")
         elif (not ScanScheduleList.find(new_schedule)):
             ScanScheduleList.bisect_insort(new_schedule)
-            self._refreshSchedList(schedList)
+            self._updateSchedList()
     
-    def _removeSelectedSchedule(self, schedList):
-        if (ScanScheduleList.len() > 0 and schedList.currentRow() >= 0):
+    def _removeSelectedSchedule(self):
+        if (ScanScheduleList.len() > 0 and self.schedListWidget.currentRow() >= 0):
             confirm = QtWidgets.QMessageBox()
             confirm.setWindowIcon(self.schedScanIcon)
             confirm.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
@@ -353,21 +350,21 @@ class GUISetup(object):
             confirm.setWindowTitle("Delete Scheduled Scan")
             retval = confirm.exec()
             if (retval == QtWidgets.QMessageBox.Yes):
-                index = schedList.currentRow()
+                index = self.schedListWidget.currentRow()
                 ScanScheduleList.remove(ScanScheduleList.get(index))
-                self._refreshSchedList(schedList)
+                self._updateSchedList()
     
-    def _updateScheduleAtIndex(self, schedList, index):
+    def _updateScheduleAtIndex(self, index):
         if (ScanScheduleList.len() > 0):
-            item = schedList.takeItem(index)
-            schedList.removeItemWidget(item)
+            item = self.schedListWidget.takeItem(index)
+            self.schedListWidget.removeItemWidget(item)
             schedule = ScanScheduleList.get(index)
             ScanScheduleList.remove(ScanScheduleList.get(index))
             if(schedule.next_schedule() and not ScanScheduleList.find(schedule)):
                 ScanScheduleList.bisect_insort(schedule)
-                self._refreshSchedList(schedList)
+                self._updateSchedList()
     
-    def _clearSchedule(self, schedList):
+    def _clearSchedule(self):
         if (ScanScheduleList.len() > 0):
             confirm = QtWidgets.QMessageBox()
             confirm.setWindowIcon(self.schedScanIcon)
@@ -378,7 +375,7 @@ class GUISetup(object):
             if (retval == QtWidgets.QMessageBox.Yes):
                 for _ in range(ScanScheduleList.len()):
                     ScanScheduleList.remove(ScanScheduleList.get(0))
-                self._refreshSchedList(schedList)
+                self._updateSchedList()
 
     def _setupViewVaultFrame(self):
         self.viewVaultFrame = QtWidgets.QFrame(self.centralwidget)
@@ -432,10 +429,12 @@ class GUISetup(object):
         buttonLayout.addSpacerItem(QtWidgets.QSpacerItem(10, 350))
     
     def _updateVault(self):
-        self.vaultList.clear()
-        for i in range(QFileList.len()-1, -1, -1):
-            qfile = QFileList.get(i)
-            self._addQuarantinedFile(qfile)
+        if (QFileList.modified(self.vaultList_last_checked)):
+            self.vaultList.setRowCount(0)
+            for i in range(QFileList.len()-1, -1, -1):
+                qfile = QFileList.get(i)
+                self._addQuarantinedFile(qfile)
+        self.vaultList_last_checked = datetime.now()
 
     def _addQuarantinedFile(self, qfile):
         timestampItem = QtWidgets.QTableWidgetItem(str(qfile.time))
@@ -526,34 +525,34 @@ class GUISetup(object):
         signatureListLayout = QtWidgets.QVBoxLayout()
         signatureListGroup.setLayout(signatureListLayout)
 
-        allowListWidget = QtWidgets.QListWidget(self.configFrame)
-        allowListLayout.addWidget(allowListWidget)
+        self.allowListWidget = QtWidgets.QListWidget(self.configFrame)
+        allowListLayout.addWidget(self.allowListWidget)
         v1Layout = QtWidgets.QVBoxLayout()
         allowListLayout.addLayout(v1Layout)
         addButton = QtWidgets.QPushButton("Add", self.configFrame)
-        addButton.clicked.connect(lambda:self._addToAllowList(allowListWidget))
+        addButton.clicked.connect(lambda:self._addToAllowList())
         v1Layout.addWidget(addButton)
         removeButton = QtWidgets.QPushButton("Remove", self.configFrame)
-        removeButton.clicked.connect(lambda:self._removeFromAllowList(allowListWidget))
+        removeButton.clicked.connect(lambda:self._removeFromAllowList())
         v1Layout.addWidget(removeButton)
         v1Layout.addSpacerItem(QtWidgets.QSpacerItem(5, 120))
-        self._updateAllowList(allowListWidget)
+        self._updateAllowList()
         
 
         h1Layout = QtWidgets.QHBoxLayout()
         signatureListLayout.addLayout(h1Layout)
-        signatureListWidget = QtWidgets.QListWidget(self.configFrame)
-        signatureListLayout.addWidget(signatureListWidget)
+        self.signatureListWidget = QtWidgets.QListWidget(self.configFrame)
+        signatureListLayout.addWidget(self.signatureListWidget)
         signatureTypeChoice = QtWidgets.QComboBox(self.configFrame)
         signatureTypeChoice.addItem("Chunk")
         signatureTypeChoice.addItem("Regex")
         signatureTypeChoice.addItem("Static")
-        signatureTypeChoice.currentTextChanged.connect(lambda:self._updateSignatureList(signatureListWidget, signatureTypeChoice))
-        self._updateSignatureList(signatureListWidget, signatureTypeChoice)
+        signatureTypeChoice.currentTextChanged.connect(lambda:self._updateSignatureList(signatureTypeChoice))
+        self._updateSignatureList(signatureTypeChoice)
         h1Layout.addWidget(signatureTypeChoice)
         h1Layout.addSpacerItem(QtWidgets.QSpacerItem(500, 10))
 
-    def _addToAllowList(self, allowListWidget):
+    def _addToAllowList(self):
         selectFileDialog = QtWidgets.QFileDialog(self.mainWindow)
         selectFileDialog.setFileMode(QtWidgets.QFileDialog.ExistingFile)
         selectFileDialog.setViewMode(QtWidgets.QFileDialog.Detail)
@@ -563,27 +562,29 @@ class GUISetup(object):
             for path in file_paths:
                 if (not AllowList.find(path)):
                     AllowList.insert(0, path)
-        self._updateAllowList(allowListWidget)
+        self._updateAllowList()
     
-    def _removeFromAllowList(self, allowListWidget):
-        index = allowListWidget.currentRow()
+    def _removeFromAllowList(self):
+        index = self.allowListWidget.currentRow()
         if(index >= 0):
             item = AllowList.get(index)
             AllowList.remove(item)
-            self._updateAllowList(allowListWidget)
+            self._updateAllowList()
 
-    def _updateAllowList(self, allowListWidget):
-        allowListWidget.clear()
-        for i in range(AllowList.len()):
-            path = AllowList.get(i)
-            item = QtWidgets.QListWidgetItem(path)
-            item.setToolTip(path)
-            allowListWidget.addItem(item)
+    def _updateAllowList(self):
+        if(AllowList.modified(self.allowList_last_checked)):
+            self.allowListWidget.clear()
+            for i in range(AllowList.len()):
+                path = AllowList.get(i)
+                item = QtWidgets.QListWidgetItem(path)
+                item.setToolTip(path)
+                self.allowListWidget.addItem(item)
+        self.allowList_last_checked = datetime.now()
     
-    def _updateSignatureList(self, signatureListWidget, choice):
-        signatureListWidget.clear()
+    def _updateSignatureList(self, choice):
+        self.signatureListWidget.clear()
         path = None
-        if (choice.currentText() == "Chunk"):
+        if (type(choice) is not QtWidgets.QComboBox or choice.currentText() == "Chunk"):
             path = config.CHUNK_HASH_FILE
         elif (choice.currentText() == "Regex"):
             path = config.REGEX_FILE
@@ -594,7 +595,7 @@ class GUISetup(object):
             return
         signatures = pd.read_csv(path)
         for i,s in enumerate(signatures['signature']):
-            signatureListWidget.addItem(QtWidgets.QListWidgetItem(f"{s} | Severity: {signatures['severity'][i]}"))
+            self.signatureListWidget.addItem(QtWidgets.QListWidgetItem(f"{s} | Severity: {signatures['severity'][i]}"))
 
 
     def _displayError(self, message):
