@@ -15,26 +15,18 @@ class AbstractSerializableList(object):
 
     @classmethod
     def insert(cls, i, item):
-        '''
-            qFile:  QuarantinedFile object
-        '''
-        cls.list.insert(i, item)
-        cls.last_mod = datetime.now()
+        if (item not in cls.list):
+            cls.list.insert(i, item)
+            cls.last_mod = datetime.now()
 
     @classmethod
     def remove(cls, item):
-        '''
-            qFile:  QuarantinedFile object
-        '''
         if (item in cls.list):
             cls.list.remove(item)
             cls.last_mod = datetime.now()
 
     @classmethod
     def find(cls, item):
-        '''
-            Return True if item is in list, else returns False
-        '''
         if(item in cls.list):
             return True
         else:
@@ -64,8 +56,9 @@ class AbstractSerializableList(object):
 
     @classmethod
     def bisect_insort(cls, item):
-        bisect.insort(cls.list, item)
-        cls.last_mod = datetime.now()
+        if (item not in cls.list):
+            bisect.insort(cls.list, item)
+            cls.last_mod = datetime.now()
     
     @classmethod
     def index(cls, item):
