@@ -49,3 +49,11 @@ python scripts/create_virus_folder.py -t test_regex -t test_static_hash -t test_
  - Dec 2, Have countermeasures done
  - Dec 5, Robust testing
  - Dec 10, Be done
+
+## Improvements
+ - Thread safe global data structures for scheduling
+ - Make GUI non-blocking while scanning
+ - Allow configuration of signature list
+ - Syscall hooking for execution before every file execution
+ - Installer
+ - Start daemon scanning processes without GUI/don't quit when GUI quits but don't use too many system resources
