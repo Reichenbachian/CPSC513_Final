@@ -1,4 +1,4 @@
-from datetime import datetime
+import os
 
 class QuarantinedFile(object):
     '''
@@ -24,7 +24,7 @@ class QuarantinedFile(object):
         return self.__str__()
     
     def __eq__(self, other):
-        if (self.time == other.time):
+        if (os.path.samefile(self.path,other.path)):
             return True
         else:
             return False
