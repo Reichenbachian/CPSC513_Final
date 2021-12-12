@@ -1,3 +1,5 @@
+import time
+
 from util.repeat import Repeat
 from datetime import datetime
 
@@ -34,6 +36,15 @@ class ScanSchedule(object):
             if (self.day == 31 and (self.month == 9 or self.month == 4 or self.month == 6 or self.month == 11)):
                 self.day = 30
         return True
+    
+    def wait(self):
+        diff = datetime.now() - datetime(self.year, self.month, self.day, self.hour, self.minute)
+        diff_seconds = diff.total_seconds()
+        if (diff_seconds <= 0):
+            return
+        else:
+            time.sleep(diff_seconds)
+            return
     
     def is_past(self):
         now = datetime.now()
